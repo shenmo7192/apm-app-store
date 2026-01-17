@@ -81,7 +81,7 @@
 
 <script setup>
 import { computed, defineProps, defineEmits } from 'vue';
-import { APM_STORE_BASE_URL } from '../global/StoreConfig';
+import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL } from '../global/StoreConfig';
 
 const props = defineProps({
   show: {
@@ -101,7 +101,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'install', 'open-preview']);
 
 const iconPath = computed(() => {
-  return props.app ? `${APM_STORE_BASE_URL}/${props.app._category}/${props.app.Pkgname}/icon.png` : '';
+  return props.app ? `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${props.app._category}/${props.app.Pkgname}/icon.png` : '';
 });
 
 const closeModal = () => {

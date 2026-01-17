@@ -62,13 +62,33 @@ export default defineConfig(({ command }) => {
         renderer: {},
       }),
     ],
-    server: process.env.VSCODE_DEBUG && (() => {
-      const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)
-      return {
-        host: url.hostname,
-        port: +url.port,
+    server: (() => {
+      if (process.env.VSCODE_DEBUG) {
+        const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL);
+        return {
+          host: url.hostname,
+          port: +url.port,
+          proxy: {
+            '/local_amd64-apm': {
+              target: 'https://erotica.spark-app.store',
+              changeOrigin: true,
+              rewrite: (path) => path.replace(/^\/local_amd64-apm/, ''),
+            }
+          }
+        }
+      } else {
+        return {
+          proxy: {
+            '/local_amd64-apm': {
+              target: 'https://erotica.spark-app.store',
+              changeOrigin: true,
+              rewrite: (path) => path.replace(/^\/local_amd64-apm/, ''),
+            }
+          }
+        }
       }
-    })(),
+    }
+    )(),
     clearScreen: false, 
   }
 })

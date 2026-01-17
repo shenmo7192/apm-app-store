@@ -264,9 +264,6 @@ const loadCategories = async () => {
   try {
     const response = await axiosInstance.get(`/${APM_STORE_ARCHITECTURE}/categories.json`);
     categories.value = response.data;
-    // const response = await fetch('/amd64-apm/categories.json');
-    // const data = await response.data
-    // categories.value = data;
   } catch (error) {
     console.error('读取 categories.json 失败', error);
   }
