@@ -6,9 +6,9 @@
     </aside>
 
     <main class="main">
-      <AppHeader :search-query="searchQuery" :apps-count="apps.length" @update-search="handleSearchInput"
+      <AppHeader :search-query="searchQuery" :apps-count="filteredApps.length" @update-search="handleSearchInput"
         @update="handleUpdate" @list="handleList" />
-      <AppGrid :apps="apps" :loading="loading" @open-detail="openDetail" />
+      <AppGrid :apps="filteredApps" :loading="loading" @open-detail="openDetail" />
     </main>
 
     <AppDetailModal :show="showModal" :app="currentApp" :screenshots="screenshots" @close="closeDetail"
