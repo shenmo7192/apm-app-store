@@ -9,7 +9,7 @@
 基于 Electron + Vue 3 + Vite 构建的现代化应用商店客户端
 
 [![GitHub Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/elysia-best/apm-app-store)
-[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange)](https://github.com/elysia-best/apm-app-store)
 
 </div>
