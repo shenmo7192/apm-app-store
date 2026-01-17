@@ -45,7 +45,7 @@ jobs:
 
       - name: Install Dependencies
         run: | 
-          npm install
+          npm install --build-from-source=false
 
       - name: Build Release Files
         run: npm run build
