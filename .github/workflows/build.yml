@@ -45,7 +45,6 @@ jobs:
 
       - name: Install Dependencies
         run: | 
-          npm install -G node-gyp@11.1.0
           npm install
 
       - name: Build Release Files

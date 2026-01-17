@@ -1,5 +1,6 @@
 import { dialog } from 'electron'
+import { deepLink } from './deeplink';
 
-export async function handleUrlScheme(requestUrl: string) {
-    console.log('Handling URL scheme request:', requestUrl);
-}
+deepLink.on("event", (query) => {
+  console.log(`Deep link: event "event" fired with query: ${JSON.stringify(query)}`);
+});
