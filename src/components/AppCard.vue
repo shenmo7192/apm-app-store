@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits, onMounted, onBeforeUnmount, ref } from 'vue';
+import { computed, defineProps, defineEmits, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL } from '../global/StoreConfig';
 
 const props = defineProps({
@@ -82,6 +82,16 @@ onMounted(() => {
 
   // 观察图标元素
   if (iconImg.value) {
+    observer.observe(iconImg.value);
+  }
+});
+
+// 当 app 变更时重置懒加载状态并重新观察
+watch(iconPath, () => {
+  loadedIcon.value = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E';
+  isLoaded.value = false;
+  if (observer && iconImg.value) {
+    observer.unobserve(iconImg.value);
     observer.observe(iconImg.value);
   }
 });

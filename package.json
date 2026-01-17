@@ -1,17 +1,18 @@
 {
-  "name": "electron-vue-vite",
-  "version": "28.1.0",
+  "name": "apm-app-store",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
-  "license": "MIT",
+  "description": "Client for APM App Store",
+  "author": "elysia-best <elysia-best@simplelinux.cn.eu.org>",
+  "license": "UNLICENSED",
   "private": true,
   "keywords": [
     "electron",
     "rollup",
     "vite",
     "vue3",
-    "vue"
+    "vue",
+    "spark-app-store"
   ],
   "debug": {
     "env": {

@@ -122,7 +122,7 @@ const openDetail = (app) => {
 const loadScreenshots = (app) => {
   screenshots.value = [];
   for (let i = 1; i <= 5; i++) {
-    const screenshotUrl = `./${app._category}/${app.Pkgname}/screen_${i}.png`;
+    const screenshotUrl = `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${app._category}/${app.Pkgname}/screen_${i}.png`;
     const img = new Image();
     img.src = screenshotUrl;
     img.onload = () => {
@@ -242,24 +242,6 @@ const escapeHtml = (s) => {
   })[c]);
 };
 
-const initLazyLoad = () => {
-  if ('IntersectionObserver' in window) {
-    observer.value = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          img.classList.remove('lazy');
-          observer.value.unobserve(img);
-        }
-      });
-    }, {
-      rootMargin: '50px 0px',
-      threshold: 0.1
-    });
-  }
-};
-
 const loadCategories = async () => {
   try {
     const response = await axiosInstance.get(`/${APM_STORE_ARCHITECTURE}/categories.json`);
@@ -305,7 +287,6 @@ const handleSearchInput = (e) => {
 // 生命周期钩子
 onMounted(async () => {
   initTheme();
-  initLazyLoad();
 
   await loadCategories();
   await loadApps();
