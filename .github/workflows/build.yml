@@ -45,7 +45,8 @@ jobs:
 
       - name: Install Dependencies
         run: | 
-          npm install --build-from-source=electron-app-universal-protocol-client
+          npm install
+          npm install -D electron-app-universal-protocol-client
 
       - name: Build Release Files
         run: npm run build
