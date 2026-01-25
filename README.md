@@ -8,7 +8,7 @@
 
 基于 Electron + Vue 3 + Vite 构建的现代化应用商店客户端
 
-[![GitHub Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/elysia-best/apm-app-store)
+[![GitHub Build](https://github.com/elysia-best/apm-app-store/actions/workflows/build.yml/badge.svg)](https://github.com/elysia-best/apm-app-store/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange)](https://github.com/elysia-best/apm-app-store)
 
@@ -21,10 +21,10 @@
 - [ ] 完善项目文档
 - [x] 可以展示应用列表及其详细信息
 - [ ] 实现应用下载&下载列表管理
- - [x] 实现应用安装&重试安装
- - [ ] 实现应用卸载
- - [ ] 实现应用更新 
- - [ ] 支持显示本地是否已经安装
+  - [x] 实现应用安装&重试安装
+  - [ ] 实现应用卸载
+  - [ ] 实现应用更新 
+  - [ ] 支持显示本地是否已经安装
 - [x] 实现应用搜索
 
 
