@@ -40,7 +40,7 @@ import DownloadQueue from './components/DownloadQueue.vue';
 import DownloadDetail from './components/DownloadDetail.vue';
 import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL, currentApp } from './global/storeConfig';
 import { downloads } from './global/downloadStatus';
-import { handleInstall } from './js/processInstall';
+import { handleInstall, handleRetry } from './modeuls/processInstall';
 
 const logger = pino();
 
@@ -249,56 +249,58 @@ const escapeHtml = (s) => {
 };
 
 // 下载管理方法
-const simulateDownload = (download) => {
-  // 模拟下载进度（实际应该调用真实的下载 API）
-  const totalSize = Math.random() * 100 + 50; // MB
-  download.totalSize = totalSize * 1024 * 1024;
+// 在这里保留这个方便以后参考
+// const simulateDownload = (download) => {
+//   // 模拟下载进度（实际应该调用真实的下载 API）
+//   const totalSize = Math.random() * 100 + 50; // MB
+//   download.totalSize = totalSize * 1024 * 1024;
   
-  const interval = setInterval(() => {
-    const downloadObj = downloads.value.find(d => d.id === download.id);
-    if (!downloadObj || downloadObj.status !== 'downloading') {
-      clearInterval(interval);
-      return;
-    }
+//   const interval = setInterval(() => {
+//     const downloadObj = downloads.value.find(d => d.id === download.id);
+//     if (!downloadObj || downloadObj.status !== 'downloading') {
+//       clearInterval(interval);
+//       return;
+//     }
 
-    // 更新进度
-    downloadObj.progress = Math.min(downloadObj.progress + Math.random() * 10, 100);
-    downloadObj.downloadedSize = (downloadObj.progress / 100) * downloadObj.totalSize;
-    downloadObj.speed = (Math.random() * 5 + 1) * 1024 * 1024; // 1-6 MB/s
+//     // 更新进度
+//     downloadObj.progress = Math.min(downloadObj.progress + Math.random() * 10, 100);
+//     downloadObj.downloadedSize = (downloadObj.progress / 100) * downloadObj.totalSize;
+//     downloadObj.speed = (Math.random() * 5 + 1) * 1024 * 1024; // 1-6 MB/s
     
-    const remainingBytes = downloadObj.totalSize - downloadObj.downloadedSize;
-    downloadObj.timeRemaining = Math.ceil(remainingBytes / downloadObj.speed);
+//     const remainingBytes = downloadObj.totalSize - downloadObj.downloadedSize;
+//     downloadObj.timeRemaining = Math.ceil(remainingBytes / downloadObj.speed);
 
-    // 添加日志
-    if (downloadObj.progress % 20 === 0 && downloadObj.progress > 0 && downloadObj.progress < 100) {
-      downloadObj.logs.push({
-        time: Date.now(),
-        message: `下载进度: ${downloadObj.progress.toFixed(0)}%`
-      });
-    }
+//     // 添加日志
+//     if (downloadObj.progress % 20 === 0 && downloadObj.progress > 0 && downloadObj.progress < 100) {
+//       downloadObj.logs.push({
+//         time: Date.now(),
+//         message: `下载进度: ${downloadObj.progress.toFixed(0)}%`
+//       });
+//     }
 
-    // 下载完成
-    if (downloadObj.progress >= 100) {
-      clearInterval(interval);
-      downloadObj.status = 'installing';
-      downloadObj.logs.push({
-        time: Date.now(),
-        message: '下载完成，开始安装...'
-      });
+//     // 下载完成
+//     if (downloadObj.progress >= 100) {
+//       clearInterval(interval);
+//       downloadObj.status = 'installing';
+//       downloadObj.logs.push({
+//         time: Date.now(),
+//         message: '下载完成，开始安装...'
+//       });
 
-      // 模拟安装
-      setTimeout(() => {
-        downloadObj.status = 'completed';
-        downloadObj.endTime = Date.now();
-        downloadObj.logs.push({
-          time: Date.now(),
-          message: '安装完成！'
-        });
-      }, 2000);
-    }
-  }, 500);
-};
+//       // 模拟安装
+//       setTimeout(() => {
+//         downloadObj.status = 'completed';
+//         downloadObj.endTime = Date.now();
+//         downloadObj.logs.push({
+//           time: Date.now(),
+//           message: '安装完成！'
+//         });
+//       }, 2000);
+//     }
+//   }, 500);
+// };
 
+// 目前 APM 商店不能暂停下载（因为 APM 本身不支持），但保留这些方法以备将来使用
 const pauseDownload = (id) => {
   const download = downloads.value.find(d => d.id === id);
   if (download && download.status === 'downloading') {
@@ -310,6 +312,7 @@ const pauseDownload = (id) => {
   }
 };
 
+// 同理
 const resumeDownload = (id) => {
   const download = downloads.value.find(d => d.id === id);
   if (download && download.status === 'paused') {
@@ -322,6 +325,7 @@ const resumeDownload = (id) => {
   }
 };
 
+// 同理
 const cancelDownload = (id) => {
   const index = downloads.value.findIndex(d => d.id === id);
   if (index !== -1) {
@@ -342,14 +346,14 @@ const cancelDownload = (id) => {
 const retryDownload = (id) => {
   const download = downloads.value.find(d => d.id === id);
   if (download && download.status === 'failed') {
-    download.status = 'downloading';
+    download.status = 'queued';
     download.progress = 0;
     download.downloadedSize = 0;
     download.logs.push({
       time: Date.now(),
       message: '重新开始下载...'
     });
-    simulateDownload(download);
+    handleRetry(download);
   }
 };
 

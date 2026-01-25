@@ -31,21 +31,26 @@ export const handleInstall = () => {
     logs: [
       { time: Date.now(), message: '开始下载...' }
     ],
-    source: 'APM Store'
+    source: 'APM Store',
+    retry: false
   };
 
   downloads.value.push(download);
 
-  // 模拟下载进度（实际应该调用真实的下载 API）
-  // simulateDownload(download);
-
   // Send to main process to start download
-  window.ipcRenderer.send('queue-install', download);
+  window.ipcRenderer.send('queue-install', JSON.stringify(download));
 
-  const encodedPkg = encodeURIComponent(currentApp.value.Pkgname);
+  // const encodedPkg = encodeURIComponent(currentApp.value.Pkgname);
   // openApmStoreUrl(`apmstore://install?pkg=${encodedPkg}`, {
   //   fallbackText: `/usr/bin/apm-installer --install ${currentApp.value.Pkgname}`
   // });
+};
+
+export const handleRetry = (download_: DownloadItem) => {
+  if (!download_?.pkgname) return;
+  download_.retry = true;  
+  // Send to main process to start download
+  window.ipcRenderer.send('queue-install', JSON.stringify(download_));
 };
 
 window.ipcRenderer.on('install-status', (_event, log: InstallLog) => {

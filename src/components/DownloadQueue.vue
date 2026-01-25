@@ -38,6 +38,7 @@
             <div class="download-info">
               <div class="download-name">{{ download.name }}</div>
               <div class="download-status-text">
+                <!-- downloading 这部分APM用不到，留给后续的Spark Store -->
                 <span v-if="download.status === 'downloading'">
                   下载中 {{ download.progress }}%
                 </span>
@@ -62,7 +63,7 @@
               </div>
             </div>
             <div class="download-actions">
-              <button
+              <!-- <button
                 v-if="download.status === 'downloading'"
                 @click.stop="pauseDownload(download.id)"
                 class="action-icon"
@@ -77,7 +78,7 @@
                 title="继续"
               >
                 <i class="fas fa-play"></i>
-              </button>
+              </button> -->
               <button
                 v-if="download.status === 'failed'"
                 @click.stop="retryDownload(download.id)"
@@ -86,13 +87,13 @@
               >
                 <i class="fas fa-redo"></i>
               </button>
-              <button
+              <!-- <button
                 @click.stop="cancelDownload(download.id)"
                 class="action-icon"
                 title="取消"
               >
                 <i class="fas fa-times"></i>
-              </button>
+              </button> -->
             </div>
           </div>
         </div>
@@ -133,15 +134,15 @@ const toggleExpand = () => {
 };
 
 const pauseDownload = (id) => {
-  emit('pause', id);
+  // emit('pause', id);
 };
 
 const resumeDownload = (id) => {
-  emit('resume', id);
+  // emit('resume', id);
 };
 
 const cancelDownload = (id) => {
-  emit('cancel', id);
+  // emit('cancel', id);
 };
 
 const retryDownload = (id) => {

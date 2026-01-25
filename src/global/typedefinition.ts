@@ -29,4 +29,5 @@ export interface DownloadItem {
         message: string;              // 日志消息
     }>;
     source: string;                 // 例如 'APM Store'
+    retry: boolean;                  // 当前是否为重试下载
 }

@@ -19,7 +19,8 @@ const tasks = new Map<number, DownloadTask>();
 let idle = true; // Indicates if the installation manager is idle
 
 // Listen for download requests from renderer process
-ipcMain.on('queue-install', async (event, download) => {
+ipcMain.on('queue-install', async (event, download_json) => {
+  const download = JSON.parse(download_json);
   const { id, pkgname } = download || {};
 
   if (!id || !pkgname) {
@@ -29,8 +30,8 @@ ipcMain.on('queue-install', async (event, download) => {
 
   logger.info(`收到下载任务: ${id},  软件包名称: ${pkgname}`);
   
-  // 避免重复添加同一任务
-  if (tasks.has(id)) {
+  // 避免重复添加同一任务，但允许重试下载
+  if (tasks.has(id) && !download.retry) {
     tasks.get(id)?.webContents.send('install-log', {
       id,
       time: Date.now(),

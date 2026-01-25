@@ -96,7 +96,7 @@
 
           <!-- 操作按钮 -->
           <div class="actions-section">
-            <button
+            <!-- <button
               v-if="download.status === 'downloading'"
               @click="pause"
               class="action-btn secondary"
@@ -111,7 +111,7 @@
             >
               <i class="fas fa-play"></i>
               继续下载
-            </button>
+            </button> -->
             <button
               v-if="download.status === 'failed'"
               @click="retry"
@@ -120,14 +120,14 @@
               <i class="fas fa-redo"></i>
               重试下载
             </button>
-            <button
+            <!-- <button
               v-if="download.status !== 'completed'"
               @click="cancel"
               class="action-btn danger"
             >
               <i class="fas fa-times"></i>
               取消下载
-            </button>
+            </button> -->
             <button
               v-if="download.status === 'completed'"
               @click="openApp"
@@ -168,15 +168,15 @@ const handleOverlayClick = () => {
 };
 
 const pause = () => {
-  emit('pause', props.download.id);
+  // emit('pause', props.download.id);
 };
 
 const resume = () => {
-  emit('resume', props.download.id);
+  // emit('resume', props.download.id);
 };
 
 const cancel = () => {
-  emit('cancel', props.download.id);
+  //emit('cancel', props.download.id);
 };
 
 const retry = () => {
@@ -523,9 +523,11 @@ const copyLogs = () => {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
 }
 
-.action-btn {
+/* .action-btn {
   flex: 1;
   min-width: 140px;
   padding: 12px 20px;
@@ -539,9 +541,9 @@ const copyLogs = () => {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
-}
+} */
 
-.action-btn.primary {
+/* .action-btn.primary {
   background: var(--primary);
   color: white;
 }
@@ -554,15 +556,23 @@ const copyLogs = () => {
 .action-btn.secondary {
   background: var(--glass);
   color: var(--text);
-}
+} */
 
-.action-btn.secondary:hover {
-  background: var(--border);
+.action-btn.primary {
+  background: rgba(255, 59, 48, 0.1);
+  color: #FF3B30;
+  min-width: 140px;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn.danger {
   background: rgba(255, 59, 48, 0.1);
   color: #FF3B30;
+  width: fill-available; 
+  min-width: 140px;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn.danger:hover {
