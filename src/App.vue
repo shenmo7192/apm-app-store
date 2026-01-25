@@ -38,7 +38,7 @@ import AppDetailModal from './components/AppDetailModal.vue';
 import ScreenPreview from './components/ScreenPreview.vue';
 import DownloadQueue from './components/DownloadQueue.vue';
 import DownloadDetail from './components/DownloadDetail.vue';
-import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL, currentApp } from './global/storeConfig';
+import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
 import { downloads } from './global/downloadStatus';
 import { handleInstall, handleRetry, handleRemove } from './modeuls/processInstall';
 
@@ -60,7 +60,6 @@ const showModal = ref(false);
 const showPreview = ref(false);
 const currentScreenIndex = ref(0);
 const screenshots = ref([]);
-const currentAppIsInstalled = ref(false);
 const loading = ref(true);
 const showDownloadDetailModal = ref(false);
 const currentDownload = ref(null);

@@ -2,7 +2,7 @@
 //   console.log('[Receive Main-process message]:', ...args)
 // })
 
-import { currentApp } from "../global/storeConfig";
+import { currentApp, currentAppIsInstalled } from "../global/storeConfig";
 import { APM_STORE_BASE_URL, APM_STORE_ARCHITECTURE } from "../global/storeConfig";
 import { downloads } from "../global/downloadStatus";
 
@@ -53,10 +53,19 @@ export const handleRetry = (download_: DownloadItem) => {
   window.ipcRenderer.send('queue-install', JSON.stringify(download_));
 };
 
-export const handleRemove = (download_: DownloadItem) => {
+export const handleRemove = () => {
   if (!currentApp.value?.Pkgname) return;
-  console.log('请求卸载: ', currentApp.value.Pkgname);
+  window.ipcRenderer.send('remove-installed', currentApp.value.Pkgname);
 }
+
+window.ipcRenderer.on('remove-complete', (_event, log: DownloadResult) => {
+  if (log.success) {
+    currentAppIsInstalled.value = false;
+  } else {
+    currentAppIsInstalled.value = true;
+    console.error('卸载失败:', log.message);
+  }
+});
 
 window.ipcRenderer.on('install-status', (_event, log: InstallLog) => {
     const downloadObj: any = downloads.value.find(d => d.id === log.id);

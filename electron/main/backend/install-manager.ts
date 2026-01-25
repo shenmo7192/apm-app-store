@@ -18,6 +18,25 @@ const tasks = new Map<number, InstallTask>();
 
 let idle = true; // Indicates if the installation manager is idle
 
+const checkSuperUserCommand = async (): Promise<string> => {
+  let superUserCmd = '';
+  const execAsync = promisify(exec);
+  if (process.getuid && process.getuid() !== 0) {
+    const { stdout, stderr } = await execAsync('which pkexec');
+    if (stderr) {
+      logger.error('没有找到 pkexec 命令');
+      return;
+    }
+    logger.info(`找到提升权限命令: ${stdout.trim()}`);
+    superUserCmd = stdout.trim();
+
+    if (superUserCmd.length === 0) {
+      logger.error('没有找到提升权限的命令 pkexec!');
+    }
+  }
+  return superUserCmd;
+}
+
 // Listen for download requests from renderer process
 ipcMain.on('queue-install', async (event, download_json) => {
   const download = JSON.parse(download_json);
@@ -50,28 +69,7 @@ ipcMain.on('queue-install', async (event, download_json) => {
   const webContents = event.sender;
 
   // 开始组装安装命令
-  const execAsync = promisify(exec);
-  let superUserCmd = '';
-  if (process.getuid && process.getuid() !== 0) {
-    const { stdout, stderr } = await execAsync('which pkexec');
-    if (stderr) {
-      logger.error('没有找到 pkexec 命令');
-      return;
-    }
-    logger.info(`找到提升权限命令: ${stdout.trim()}`);
-    superUserCmd = stdout.trim();
-
-    if (superUserCmd.length === 0) {
-      logger.error('没有找到提升权限的命令 pkexec, 无法继续安装');
-      webContents.send('install-error', {
-        id,
-        time: Date.now(),
-        message: '无法找到提升权限的命令 pkexec，请手动安装'
-      });
-      return;
-    }
-  }
-
+  let superUserCmd = await checkSuperUserCommand();
   let execCommand = '';
   let execParams = [];
   if (superUserCmd.length > 0) {
@@ -200,4 +198,56 @@ ipcMain.handle('check-installed', async (_event, pkgname: string) => {
     });
   });
   return isInstalled;
+});
+
+ipcMain.on('remove-installed', async (_event, pkgname: string) => {
+  const webContents = _event.sender;
+  if (!pkgname) {
+    logger.warn('remove-installed missing pkgname');
+    return;
+  }
+  logger.info(`卸载已安装应用: ${pkgname}`);
+  
+  let superUserCmd = await checkSuperUserCommand();
+  let execCommand = '';
+  let execParams = [];
+  if (superUserCmd.length > 0) {
+    execCommand = superUserCmd;
+    execParams.push('/usr/bin/apm');
+  } else {
+    execCommand = '/usr/bin/apm';
+  }
+  let child = spawn(execCommand, [...execParams, 'remove', '-y', pkgname], {
+    shell: true,
+    env: process.env
+  });
+  let output = '';
+  
+  child.stdout.on('data', (data) => {
+    output += data.toString();
+  });
+
+  child.on('close', (code) => {
+    const success = code === 0;
+    // 拼接json消息
+    const messageJSONObj = {
+      message: success ? '卸载完成' : `卸载失败，退出码 ${code}`,
+      stdout: output,
+      stderr: ''
+    };
+
+    if (success) {
+      logger.info(messageJSONObj);
+    } else {
+      logger.error(messageJSONObj);
+    }
+
+    webContents.send('remove-complete', {
+      id: 0,
+      success: success,
+      time: Date.now(),
+      exitCode: code,
+      message: JSON.stringify(messageJSONObj)
+    });
+  });
 });
