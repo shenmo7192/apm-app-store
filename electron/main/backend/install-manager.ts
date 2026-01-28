@@ -151,11 +151,11 @@ ipcMain.on('queue-install', async (event, download_json) => {
   let execParams = [];
   if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
-    execParams.push('/usr/bin/apm');
+    execParams.push('/opt/apm-app-store/extras/shell-caller.sh');
   } else {
-    execCommand = '/usr/bin/apm';
+    execCommand = '/opt/apm-app-store/extras/shell-caller.sh';
   }
-  execParams.push('install', '-y', pkgname);
+  execParams.push('apm', 'install', '-y', pkgname);
 
   const task: InstallTask = {
     id,
@@ -252,7 +252,7 @@ ipcMain.handle('check-installed', async (_event, pkgname: string) => {
 
   logger.info(`检查应用是否已安装: ${pkgname}`);
 
-  let child = spawn('/usr/bin/apm', ['list', '--installed', pkgname], {
+  let child = spawn('/opt/apm-app-store/extras/shell-caller.sh', ['apm', 'list', '--installed', pkgname], {
     shell: true,
     env: process.env
   });
@@ -290,11 +290,11 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
   let execParams = [];
   if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
-    execParams.push('/usr/bin/apm');
+    execParams.push('/opt/apm-app-store/extras/shell-caller.sh');
   } else {
-    execCommand = '/usr/bin/apm';
+    execCommand = '/opt/apm-app-store/extras/shell-caller.sh';
   }
-  let child = spawn(execCommand, [...execParams, 'remove', '-y', pkgname], {
+  let child = spawn(execCommand, [...execParams, 'apm', 'remove', '-y', pkgname], {
     shell: true,
     env: process.env
   });
@@ -348,10 +348,10 @@ ipcMain.handle('list-upgradable', async () => {
 
 ipcMain.handle('list-installed', async () => {
   const superUserCmd = await checkSuperUserCommand();
-  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/usr/bin/apm';
+  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/opt/apm-app-store/extras/shell-caller.sh';
   const execParams = superUserCmd.length > 0
-    ? ['/usr/bin/apm', 'list', '--installed']
-    : ['list', '--installed'];
+    ? ['/opt/apm-app-store/extras/shell-caller.sh', 'apm', 'list', '--installed']
+    : ['apm', 'list', '--installed'];
 
   const { code, stdout, stderr } = await runCommandCapture(execCommand, execParams);
   if (code !== 0) {
@@ -374,10 +374,10 @@ ipcMain.handle('uninstall-installed', async (_event, pkgname: string) => {
   }
 
   const superUserCmd = await checkSuperUserCommand();
-  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/usr/bin/apm';
+  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/opt/apm-app-store/extras/shell-caller.sh';
   const execParams = superUserCmd.length > 0
-    ? ['/usr/bin/apm', 'remove', '-y', pkgname]
-    : ['remove', '-y', pkgname];
+    ? ['/opt/apm-app-store/extras/shell-caller.sh', 'apm', 'remove', '-y', pkgname]
+    : ['apm', 'remove', '-y', pkgname];
 
   const { code, stdout, stderr } = await runCommandCapture(execCommand, execParams);
   const success = code === 0;
