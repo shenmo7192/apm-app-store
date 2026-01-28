@@ -7,10 +7,10 @@
           <div class="modal-subtitle">可更新的 APM 应用</div>
         </div>
         <div class="modal-actions">
-          <button class="action-btn" :disabled="loading" @click="$emit('refresh')">
+          <button class="apm-btn" :disabled="loading" @click="$emit('refresh')">
             <i class="fas fa-sync-alt"></i> 刷新
           </button>
-          <button class="action-btn secondary" :disabled="loading || apps.length === 0" @click="$emit('toggle-all')">
+          <button class="apm-btn" :disabled="loading || apps.length === 0" @click="$emit('toggle-all')">
             <i class="fas fa-check-square"></i> 全选/全不选
           </button>
           <button class="apm-btn" :disabled="loading || !hasSelected" @click="$emit('upgrade-selected')">

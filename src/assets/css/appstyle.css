@@ -789,7 +789,7 @@ align-items: center;
 .action-btn {
 padding: 8px 12px;
 border-radius: 10px;
-background: var(--card);
+background: var(--accent);
 border: 1px solid rgba(15, 23, 42, 0.04);
 box-shadow: var(--shadow);
 cursor: pointer;

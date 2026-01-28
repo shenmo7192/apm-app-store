@@ -7,7 +7,7 @@
           <div class="modal-subtitle">来自本机 APM 安装列表</div>
         </div>
         <div class="modal-actions">
-          <button class="action-btn" :disabled="loading" @click="$emit('refresh')">
+          <button class="apm-btn" :disabled="loading" @click="$emit('refresh')">
             <i class="fas fa-sync-alt"></i> 刷新
           </button>
           <button class="close-modal" @click="$emit('close')" aria-label="关闭">×</button>
@@ -31,7 +31,7 @@
               </div>
             </div>
             <div class="installed-actions">
-              <button class="action-btn secondary danger" :disabled="app.removing" @click="$emit('uninstall', app)">
+              <button class="apm-btn secondary danger" :disabled="app.removing" @click="$emit('uninstall', app)">
                 <i class="fas fa-trash"></i>
                 {{ app.removing ? '卸载中…' : '卸载' }}
               </button>
@@ -137,12 +137,12 @@ defineEmits(['close', 'refresh', 'uninstall']);
   gap: 8px;
 }
 
-.action-btn.danger {
-  color: #ef4444;
+.apm-btn.danger {
+  background: #ef4444;
   border-color: rgba(239, 68, 68, 0.2);
 }
 
-.action-btn.danger:hover {
-  color: #dc2626;
+.apm-btn.danger:hover {
+  background: #dc2626;
 }
 </style>
