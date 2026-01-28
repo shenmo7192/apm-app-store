@@ -47,12 +47,12 @@ jobs:
         if: matrix.package == 'deb'
         run: |
           apt-get update
-          apt-get install -y curl git wget devscripts fakeroot equivs lintian
+          apt-get install -y curl git wget devscripts fakeroot equivs lintian python3
 
       - name: Install Build Dependencies
         if: matrix.package == 'rpm'
         run: |
-          dnf install -y curl git wget rpm-build rpmdevtools rpmlint
+          dnf install -y curl git wget rpm-build rpmdevtools rpmlint python3
 
       - name: Checkout Code
         uses: actions/checkout@v6
