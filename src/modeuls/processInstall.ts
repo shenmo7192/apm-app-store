@@ -9,6 +9,7 @@ import { downloads } from "../global/downloadStatus";
 import { InstallLog, DownloadItem, DownloadResult } from '../global/typedefinition';
 
 let downloadIdCounter = 0;
+const fallbackIcon = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3EAPM%3C/text%3E%3C/svg%3E';
 
 export const handleInstall = () => {
   if (!currentApp.value?.Pkgname) return;
@@ -51,6 +52,35 @@ export const handleRetry = (download_: DownloadItem) => {
   download_.retry = true;  
   // Send to main process to start download
   window.ipcRenderer.send('queue-install', JSON.stringify(download_));
+};
+
+export const handleUpgrade = (pkgname: string, newVersion = '') => {
+  if (!pkgname) return;
+
+  downloadIdCounter += 1;
+  const download: DownloadItem = {
+    id: downloadIdCounter,
+    name: pkgname,
+    pkgname: pkgname,
+    version: newVersion,
+    icon: fallbackIcon,
+    status: 'queued',
+    progress: 0,
+    downloadedSize: 0,
+    totalSize: 0,
+    speed: 0,
+    timeRemaining: 0,
+    startTime: Date.now(),
+    logs: [
+      { time: Date.now(), message: '开始更新...' }
+    ],
+    source: 'APM Update',
+    retry: false,
+    upgradeOnly: true
+  };
+
+  downloads.value.push(download);
+  window.ipcRenderer.send('queue-install', JSON.stringify(download));
 };
 
 export const handleRemove = () => {

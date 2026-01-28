@@ -37,10 +37,87 @@ const checkSuperUserCommand = async (): Promise<string> => {
   return superUserCmd;
 }
 
+const runCommandCapture = async (execCommand: string, execParams: string[], envOverride?: NodeJS.ProcessEnv) => {
+  return await new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
+    const child = spawn(execCommand, execParams, {
+      shell: true,
+      env: { ...process.env, ...(envOverride || {}) }
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (err) => {
+      resolve({ code: -1, stdout, stderr: err.message });
+    });
+
+    child.on('close', (code) => {
+      resolve({ code: typeof code === 'number' ? code : -1, stdout, stderr });
+    });
+  });
+};
+
+const parseInstalledList = (output: string) => {
+  const apps: Array<{ pkgname: string; version: string; arch: string; flags: string; raw: string }> = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('Listing')) continue;
+    if (trimmed.startsWith('[INFO]')) continue;
+
+    const match = trimmed.match(/^(\S+)\/\S+,\S+\s+(\S+)\s+(\S+)\s+\[(.+)\]$/);
+    if (!match) continue;
+    apps.push({
+      pkgname: match[1],
+      version: match[2],
+      arch: match[3],
+      flags: match[4],
+      raw: trimmed
+    });
+  }
+  return apps;
+};
+
+const parseUpgradableList = (output: string) => {
+  const apps: Array<{ pkgname: string; newVersion: string; currentVersion: string; raw: string }> = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('Listing')) continue;
+    if (trimmed.startsWith('[INFO]')) continue;
+    if (trimmed.includes('=') && !trimmed.includes('/')) continue;
+
+    if (!trimmed.includes('/')) continue;
+
+    const tokens = trimmed.split(/\s+/);
+    if (tokens.length < 2) continue;
+    const pkgToken = tokens[0];
+    const pkgname = pkgToken.split('/')[0];
+    const newVersion = tokens[1] || '';
+    const currentMatch = trimmed.match(/\[(?:upgradable from|from):\s*([^\]\s]+)\]/i);
+    const currentToken = tokens[5] || '';
+    const currentVersion = currentMatch?.[1] || currentToken.replace('[', '').replace(']', '');
+
+    if (!pkgname) continue;
+    apps.push({ pkgname, newVersion, currentVersion, raw: trimmed });
+  }
+  return apps;
+};
+
 // Listen for download requests from renderer process
 ipcMain.on('queue-install', async (event, download_json) => {
   const download = JSON.parse(download_json);
-  const { id, pkgname } = download || {};
+  const { id, pkgname, upgradeOnly } = download || {};
 
   if (!id || !pkgname) {
     logger.warn('passed arguments missing id or pkgname');
@@ -250,4 +327,72 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
       message: JSON.stringify(messageJSONObj)
     });
   });
+});
+
+ipcMain.handle('list-upgradable', async () => {
+  const listCommand = 'source /opt/apm-store/transhell.sh; load_transhell_debug; amber-pm-debug aptss list --upgradable';
+  const { code, stdout, stderr } = await runCommandCapture(
+    '/bin/bash',
+    ['-lc', listCommand],
+    { LANGUAGE: 'en_US' }
+  );
+  if (code !== 0) {
+    logger.error(`list-upgradable failed: ${stderr || stdout}`);
+    return {
+      success: false,
+      message: stderr || stdout || `list-upgradable failed with code ${code}`,
+      apps: []
+    };
+  }
+
+  const apps = parseUpgradableList(stdout);
+  return { success: true, apps };
+});
+
+ipcMain.handle('list-installed', async () => {
+  const superUserCmd = await checkSuperUserCommand();
+  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/usr/bin/apm';
+  const execParams = superUserCmd.length > 0
+    ? ['/usr/bin/apm', 'list', '--installed']
+    : ['list', '--installed'];
+
+  const { code, stdout, stderr } = await runCommandCapture(execCommand, execParams);
+  if (code !== 0) {
+    logger.error(`list-installed failed: ${stderr || stdout}`);
+    return {
+      success: false,
+      message: stderr || stdout || `list-installed failed with code ${code}`,
+      apps: []
+    };
+  }
+
+  const apps = parseInstalledList(stdout);
+  return { success: true, apps };
+});
+
+ipcMain.handle('uninstall-installed', async (_event, pkgname: string) => {
+  if (!pkgname) {
+    logger.warn('uninstall-installed missing pkgname');
+    return { success: false, message: 'missing pkgname' };
+  }
+
+  const superUserCmd = await checkSuperUserCommand();
+  const execCommand = superUserCmd.length > 0 ? superUserCmd : '/usr/bin/apm';
+  const execParams = superUserCmd.length > 0
+    ? ['/usr/bin/apm', 'remove', '-y', pkgname]
+    : ['remove', '-y', pkgname];
+
+  const { code, stdout, stderr } = await runCommandCapture(execCommand, execParams);
+  const success = code === 0;
+
+  if (success) {
+    logger.info(`卸载完成: ${pkgname}`);
+  } else {
+    logger.error(`卸载失败: ${pkgname} ${stderr || stdout}`);
+  }
+
+  return {
+    success,
+    message: success ? '卸载完成' : (stderr || stdout || `卸载失败，退出码 ${code}`)
+  };
 });

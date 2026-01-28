@@ -24,6 +24,15 @@
     <DownloadDetail :show="showDownloadDetailModal" :download="currentDownload" @close="closeDownloadDetail"
       @pause="pauseDownload" @resume="resumeDownload" @cancel="cancelDownload" @retry="retryDownload"
       @open-app="openDownloadedApp" />
+
+    <InstalledAppsModal :show="showInstalledModal" :apps="installedApps" :loading="installedLoading"
+      :error="installedError" @close="closeInstalledModal" @refresh="refreshInstalledApps"
+      @uninstall="uninstallInstalledApp" />
+
+    <UpdateAppsModal :show="showUpdateModal" :apps="upgradableApps" :loading="updateLoading"
+      :error="updateError" :has-selected="hasSelectedUpgrades" @close="closeUpdateModal"
+      @refresh="refreshUpgradableApps" @toggle-all="toggleAllUpgrades"
+      @upgrade-selected="upgradeSelectedApps" @upgrade-one="upgradeSingleApp" />
   </div>
 </template>
 
@@ -38,9 +47,11 @@ import AppDetailModal from './components/AppDetailModal.vue';
 import ScreenPreview from './components/ScreenPreview.vue';
 import DownloadQueue from './components/DownloadQueue.vue';
 import DownloadDetail from './components/DownloadDetail.vue';
+import InstalledAppsModal from './components/InstalledAppsModal.vue';
+import UpdateAppsModal from './components/UpdateAppsModal.vue';
 import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
 import { downloads } from './global/downloadStatus';
-import { handleInstall, handleRetry, handleRemove } from './modeuls/processInstall';
+import { handleInstall, handleRetry, handleRemove, handleUpgrade } from './modeuls/processInstall';
 
 const logger = pino();
 
@@ -63,6 +74,14 @@ const screenshots = ref([]);
 const loading = ref(true);
 const showDownloadDetailModal = ref(false);
 const currentDownload = ref(null);
+const showInstalledModal = ref(false);
+const installedApps = ref([]);
+const installedLoading = ref(false);
+const installedError = ref('');
+const showUpdateModal = ref(false);
+const upgradableApps = ref([]);
+const updateLoading = ref(false);
+const updateError = ref('');
 
 // 计算属性
 const filteredApps = computed(() => {
@@ -94,6 +113,10 @@ const categoryCounts = computed(() => {
     counts[app._category]++;
   });
   return counts;
+});
+
+const hasSelectedUpgrades = computed(() => {
+  return upgradableApps.value.some(app => app.selected);
 });
 
 // 方法
@@ -183,15 +206,113 @@ const nextScreen = () => {
 };
 
 const handleUpdate = () => {
-  openApmStoreUrl('apmstore://action?cmd=update', {
-    fallbackText: 'apm-update-tool'
-  });
+  openUpdateModal();
 };
 
 const handleList = () => {
-  openApmStoreUrl('apmstore://action?cmd=list', {
-    fallbackText: '/usr/bin/apm-installer --list'
+  openInstalledModal();
+};
+
+const openUpdateModal = () => {
+  showUpdateModal.value = true;
+  refreshUpgradableApps();
+};
+
+const closeUpdateModal = () => {
+  showUpdateModal.value = false;
+};
+
+const refreshUpgradableApps = async () => {
+  updateLoading.value = true;
+  updateError.value = '';
+  try {
+    const result = await window.ipcRenderer.invoke('list-upgradable');
+    if (!result?.success) {
+      upgradableApps.value = [];
+      updateError.value = result?.message || '检查更新失败';
+      return;
+    }
+    upgradableApps.value = (result.apps || []).map(app => ({
+      ...app,
+      selected: false,
+      upgrading: false
+    }));
+  } catch (error) {
+    upgradableApps.value = [];
+    updateError.value = error?.message || '检查更新失败';
+  } finally {
+    updateLoading.value = false;
+  }
+};
+
+const toggleAllUpgrades = () => {
+  const shouldSelectAll = !hasSelectedUpgrades.value || upgradableApps.value.some(app => !app.selected);
+  upgradableApps.value = upgradableApps.value.map(app => ({
+    ...app,
+    selected: shouldSelectAll ? true : false
+  }));
+};
+
+const upgradeSingleApp = (app) => {
+  if (!app?.pkgname) return;
+  handleUpgrade(app.pkgname, app.newVersion || '');
+};
+
+const upgradeSelectedApps = () => {
+  const selectedApps = upgradableApps.value.filter(app => app.selected);
+  selectedApps.forEach(app => {
+    upgradeSingleApp(app);
   });
+};
+
+const openInstalledModal = () => {
+  showInstalledModal.value = true;
+  refreshInstalledApps();
+};
+
+const closeInstalledModal = () => {
+  showInstalledModal.value = false;
+};
+
+const refreshInstalledApps = async () => {
+  installedLoading.value = true;
+  installedError.value = '';
+  try {
+    const result = await window.ipcRenderer.invoke('list-installed');
+    if (!result?.success) {
+      installedApps.value = [];
+      installedError.value = result?.message || '读取已安装应用失败';
+      return;
+    }
+    installedApps.value = (result.apps || []).map((app) => ({
+      ...app,
+      removing: false
+    }));
+  } catch (error) {
+    installedApps.value = [];
+    installedError.value = error?.message || '读取已安装应用失败';
+  } finally {
+    installedLoading.value = false;
+  }
+};
+
+const uninstallInstalledApp = async (app) => {
+  if (!app?.pkgname) return;
+  const target = installedApps.value.find(item => item.pkgname === app.pkgname);
+  if (target) target.removing = true;
+  try {
+    const result = await window.ipcRenderer.invoke('uninstall-installed', app.pkgname);
+    if (!result?.success) {
+      installedError.value = result?.message || '卸载失败';
+    } else {
+      installedApps.value = installedApps.value.filter(item => item.pkgname !== app.pkgname);
+    }
+  } catch (error) {
+    installedError.value = error?.message || '卸载失败';
+  } finally {
+    const restore = installedApps.value.find(item => item.pkgname === app.pkgname);
+    if (restore) restore.removing = false;
+  }
 };
 
 const openApmStoreUrl = (url, { fallbackText } = {}) => {
