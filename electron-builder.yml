@@ -54,4 +54,4 @@ rpm:
     - "at-spi2-core"
     - "libuuid"
     - "libsecret"
-    - "apm"
+    - "amber-package-manager"
