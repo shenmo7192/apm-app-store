@@ -1,6 +1,6 @@
 {
   "name": "apm-app-store",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "Client for APM App Store",
   "author": "elysia-best <elysia-best@simplelinux.cn.eu.org>",
@@ -23,6 +23,8 @@
   "scripts": {
     "dev": "vite --mode debug | pino-pretty",
     "build": "vue-tsc --noEmit && vite build --mode production && electron-builder",
+    "build:rpm": "vue-tsc --noEmit && vite build --mode production && electron-builder --linux rpm",
+    "build:deb": "vue-tsc --noEmit && vite build --mode production && electron-builder --linux deb",
     "preview": "vite preview --mode debug"
   },
   "devDependencies": {

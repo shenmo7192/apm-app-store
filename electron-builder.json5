@@ -3,7 +3,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "apm-app-store",
   "asar": true,
-  "productName": "APM AppStore",
+  "productName": "apm-app-store",
   "directories": {
     "output": "release/${version}"
   },
@@ -27,7 +27,8 @@
     },
     "target": [
       "AppImage",
-      "deb"
+      "deb",
+      "rpm"
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }

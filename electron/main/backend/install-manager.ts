@@ -41,6 +41,7 @@ const runCommandCapture = async (execCommand: string, execParams: string[]) => {
   return await new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn(execCommand, execParams, {
       shell: true,
+      env: process.env
     });
 
     let stdout = '';

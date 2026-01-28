@@ -29,12 +29,30 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.docker_image }}
 
     strategy:
       matrix:
         os: [ubuntu-latest]
+        include:
+          - package: deb
+            docker_image: "debian:12"
+          - package: rpm
+            docker_image: "almalinux:8"
+      
 
     steps:
+      - name: Install Build Dependencies
+        if: matrix.package == 'deb'
+        run: |
+          apt-get update
+          apt-get install -y curl git wget build-essential devscripts fakeroot equivs lintian
+
+      - name: Install Build Dependencies
+        if: matrix.package == 'rpm'
+        run: |
+          dnf install -y curl git wget @development-tools rpmdevtools rpmlint
+
       - name: Checkout Code
         uses: actions/checkout@v6
 
@@ -48,13 +66,13 @@ jobs:
           npm install
 
       - name: Build Release Files
-        run: npm run build
+        run: ${{ matrix.package == 'deb' && 'npm run build:deb' || matrix.package == 'rpm' && 'npm run build:rpm' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v6
         with:
-          name: release_on_${{ matrix. os }}
+          name: release_for_${{ matrix.package }}
           path: release/
           retention-days: 5
