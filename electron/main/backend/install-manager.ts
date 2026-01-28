@@ -37,11 +37,10 @@ const checkSuperUserCommand = async (): Promise<string> => {
   return superUserCmd;
 }
 
-const runCommandCapture = async (execCommand: string, execParams: string[], envOverride?: NodeJS.ProcessEnv) => {
+const runCommandCapture = async (execCommand: string, execParams: string[]) => {
   return await new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
     const child = spawn(execCommand, execParams, {
       shell: true,
-      env: { ...process.env, ...(envOverride || {}) }
     });
 
     let stdout = '';
@@ -330,12 +329,9 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
 });
 
 ipcMain.handle('list-upgradable', async () => {
-  const listCommand = 'source /opt/apm-store/transhell.sh; load_transhell_debug; amber-pm-debug aptss list --upgradable';
   const { code, stdout, stderr } = await runCommandCapture(
-    '/bin/bash',
-    ['-lc', listCommand],
-    { LANGUAGE: 'en_US' }
-  );
+    '/usr/bin/amber-pm-debug',
+    ['aptss', 'list', '--upgradable']);
   if (code !== 0) {
     logger.error(`list-upgradable failed: ${stderr || stdout}`);
     return {

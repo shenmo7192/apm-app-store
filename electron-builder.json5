@@ -12,7 +12,7 @@
     "dist-electron"
   ],
   "linux": {
-    "icon": "public/amber-pm-logo.png",
+    "icon": "public/amber-pm-logo.icns",
     "category": "System",
     "executableName": "apm-app-store",
     "desktop": {
