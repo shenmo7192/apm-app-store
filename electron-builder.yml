@@ -28,8 +28,8 @@ linux:
     - "deb"
     - "rpm"
 deb:
-  afterInstall: "scripts/debian-postinst.sh"
-  afterRemove: "scripts/debian-postrm.sh"
+  afterInstall: "scripts/postinst.sh"
+  afterRemove: "scripts/postrm.sh"
   depends:
     - "libgtk-3-0"
     - "libnotify4"
@@ -42,6 +42,8 @@ deb:
     - "libsecret-1-0"
     - "apm"
 rpm:
+  afterInstall: "scripts/postinst.sh"
+  afterRemove: "scripts/postrm.sh"
   depends:
     - "gtk3"
     - "libnotify"
