@@ -331,8 +331,8 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
 
 ipcMain.handle('list-upgradable', async () => {
   const { code, stdout, stderr } = await runCommandCapture(
-    '/usr/bin/amber-pm-debug',
-    ['aptss', 'list', '--upgradable']);
+    '/opt/apm-app-store/extras/shell-caller.sh',
+    ['apm', 'list', '--upgradable']);
   if (code !== 0) {
     logger.error(`list-upgradable failed: ${stderr || stdout}`);
     return {
