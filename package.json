@@ -1,10 +1,10 @@
 {
   "name": "apm-app-store",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "main": "dist-electron/main/index.js",
   "description": "Client for APM App Store",
   "author": "elysia-best <elysia-best@simplelinux.cn.eu.org>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "keywords": [
     "electron",
