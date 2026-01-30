@@ -54,7 +54,7 @@ export const handleRetry = (download_: DownloadItem) => {
 };
 
 export const handleUpgrade = (pkg: any) => {
-  if (!pkg.pkgname) return;
+  if (!pkg.Pkgname) return;
 
   downloadIdCounter += 1;
   const download: DownloadItem = {

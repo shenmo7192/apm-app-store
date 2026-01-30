@@ -301,7 +301,11 @@ const refreshInstalledApps = async () => {
 };
 
 const requestUninstall = (app) => {
-  const target = apps.value.find(a => a.Pkgname === app.pkgname);
+  let target = null;
+  if (!app?.Pkgname) // TODO: 很丑，之后统一变量名
+    target = apps.value.find(a => a.Pkgname === app.pkgname);
+  else
+    target = app;
   uninstallTargetApp.value = target;
   showUninstallModal.value = true;
 };

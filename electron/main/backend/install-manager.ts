@@ -306,12 +306,6 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
     webContents.send('remove-progress', chunk);
   });
 
-  child.stderr.on('data', (data) => {
-    const chunk = data.toString();
-    output += chunk;
-    webContents.send('remove-progress', chunk);
-  });
-
   child.on('close', (code) => {
     const success = code === 0;
     // 拼接json消息
