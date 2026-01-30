@@ -42,12 +42,18 @@
             <div v-for="app in apps" :key="app.pkgname"
               class="flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/70 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p class="text-base font-semibold text-slate-900 dark:text-white">{{ app.pkgname }}</p>
+                <div class="flex items-center gap-2">
+                  <p class="text-base font-semibold text-slate-900 dark:text-white">{{ app.pkgname }}</p>
+                  <span v-if="app.flags && app.flags.includes('automatic')"
+                    class="rounded-md bg-rose-100 px-2 py-0.5 text-[11px] font-semibold text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
+                    依赖项
+                  </span>
+                </div>
                 <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <span>{{ app.version }}</span>
                   <span>·</span>
                   <span>{{ app.arch }}</span>
-                  <template v-if="app.flags">
+                  <template v-if="app.flags && !app.flags.includes('automatic')">
                     <span>·</span>
                     <span>{{ app.flags }}</span>
                   </template>
