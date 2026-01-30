@@ -518,11 +518,29 @@ onMounted(async () => {
 
   // Deep link Handlers
   window.ipcRenderer.on('deep-link-update', () => {
-    openUpdateModal();
+    if (loading.value) {
+      const stop = watch(loading, (val) => {
+        if (!val) {
+          openUpdateModal();
+          stop();
+        }
+      });
+    } else {
+      openUpdateModal();
+    }
   });
 
   window.ipcRenderer.on('deep-link-installed', () => {
-    openInstalledModal();
+    if (loading.value) {
+      const stop = watch(loading, (val) => {
+        if (!val) {
+          openInstalledModal();
+          stop();
+        }
+      });
+    } else {
+      openInstalledModal();
+    }
   });
 
   window.ipcRenderer.on('deep-link-install', (_event, pkgname) => {

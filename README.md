@@ -30,7 +30,7 @@
 - [x] 实现应用搜索
   - [ ] 切换分类时默认不应用搜索，需按下回车键才应用搜索
 - [x] 修改UI，使其更美观（考虑换成如tailwindcss等库）
-- [ ] 实现URL Shceme协议支持
+- [x] 实现URL Shceme协议支持
 - [ ] 动画性能问题
 
 
@@ -52,15 +52,11 @@
 
 ### 安装应用商店
 
-**现在不要安装，没开发完** ！！！
+**⚠️提示：目前客户端处于开发阶段，可能会出现一些问题，请谨慎使用并及时反馈。**
 
-TODO
-
-
-### 使用命令行工具
-
-
-TODO
+1. 从 Release 下载最新版本的应用商店客户端。
+2. 下载 apm 包管理器
+3. 首先安装包管理器，然后安装应用商店
 
 ---
 
@@ -91,6 +87,12 @@ npm run dev
 ```bash
 # 构建生产版本
 npm run build
+
+# 仅打包deb
+npm run build:deb
+
+# 仅打包rpm
+npm run build:rpm
 ```
 
 ---
@@ -99,31 +101,44 @@ npm run build
 
 ```
 apm-app-store/
-├── electron/              # Electron 主进程
+├── electron/                 # Electron 主进程
 │   ├── main/
-│   │   ├── index.ts      # 主进程入口
-│   │   └── handle-url-scheme.ts  # URL 协议处理
+│   │   ├── backend/          # 后端逻辑 (安装管理器)
+│   │   ├── deeplink.ts       # Deep Link 协议支持
+│   │   ├── handle-url-scheme.ts # URL Scheme 处理器
+│   │   └── index.ts          # 主进程入口
 │   └── preload/
-│       └── index.ts      # 预加载脚本
-├── src/                   # Vue 渲染进程
-│   ├── components/       # Vue 组件
-│   │   ├── AppCard.vue           # 应用卡片
-│   │   ├── AppGrid.vue           # 应用网格
-│   │   ├── AppHeader.vue         # 应用头部
-│   │   ├── AppSidebar.vue        # 侧边栏
-│   │   ├── AppDetailModal.vue    # 详情弹窗
-│   │   ├── DownloadQueue.vue     # 下载队列
-│   │   ├── DownloadDetail.vue    # 下载详情
-│   │   └── ScreenPreview.vue     # 截图预览
-│   ├── global/           # 全局配置
-│   │   └── StoreConfig.ts        # 商店配置
-│   ├── assets/           # 静态资源
-│   ├── App.vue           # 根组件
-│   └── main.ts           # 渲染进程入口
-├── public/               # 公共资源
-├── dist-electron/        # Electron 构建输出
-├── release/              # 打包发布文件
-└── package.json
+│       └── index.ts          # 预加载脚本
+├── src/                      # Vue 渲染进程
+│   ├── 3rdparty/             # 第三方依赖
+│   ├── assets/               # 静态资源 (CSS/Images)
+│   ├── components/           # Vue 组件
+│   │   ├── AppCard.vue       # 应用卡片
+│   │   ├── AppDetailModal.vue # 应用详情/安装弹窗
+│   │   ├── AppGrid.vue       # 应用列表网格
+│   │   ├── AppHeader.vue     # 顶部导航与搜索
+│   │   ├── AppSidebar.vue    # 侧边栏分类导航
+│   │   ├── DownloadDetail.vue # 下载任务详情
+│   │   ├── DownloadQueue.vue # 下载队列浮窗
+│   │   ├── InstalledAppsModal.vue # 已安装应用管理
+│   │   ├── ScreenPreview.vue # 截图预览
+│   │   ├── ThemeToggle.vue   # 主题切换
+│   │   ├── TopActions.vue    # 顶部操作栏
+│   │   └── UpdateAppsModal.vue # 应用更新弹窗
+│   ├── global/               # 全局配置与状态
+│   │   ├── downloadStatus.ts # 下载状态管理
+│   │   ├── storeConfig.ts    # 商店配置 API
+│   │   └── typedefinition.ts # 类型定义
+│   ├── modeuls/              # 业务逻辑模块
+│   │   └── processInstall.ts # 安装/卸载/更新逻辑
+│   ├── App.vue               # 根组件 (含 Deep Link 监听)
+│   └── main.ts               # 入口文件
+├── extras/                   # 额外资源 (Shell脚本/策略文件)
+├── public/                   # 公共资源
+├── scripts/                  # 维护脚本
+├── electron-builder.yml      # 打包配置
+├── vite.config.ts            # Vite 配置
+└── package.json              # 项目依赖
 ```
 
 ---
