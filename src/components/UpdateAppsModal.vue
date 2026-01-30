@@ -3,7 +3,7 @@
     enter-to-class="opacity-100 scale-100" leave-active-class="duration-150 ease-in"
     leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
     <div v-if="show"
-      class="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/70 px-4 py-10 backdrop-blur-sm">
+      class="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/70 px-4 py-10">
       <div class="w-full max-w-4xl rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex-1">
