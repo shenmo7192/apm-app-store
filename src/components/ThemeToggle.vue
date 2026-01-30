@@ -1,6 +1,6 @@
 <template>
   <button type="button"
-    class="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand/40 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-300"
+    class="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-300"
     :aria-pressed="isDark" @click="toggle">
     <span class="flex items-center gap-2">
       <i class="fas" :class="isDark ? 'fa-moon text-amber-200' : 'fa-sun text-amber-400'"></i>
