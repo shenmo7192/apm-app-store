@@ -102,7 +102,7 @@
 
 <script setup>
 import { computed, defineProps, defineEmits, useAttrs, ref } from 'vue';
-import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL } from '../global/storeConfig';
+import { APM_STORE_BASE_URL } from '../global/storeConfig';
 
 defineOptions({ inheritAttrs: false });
 
@@ -130,7 +130,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'install', 'remove', 'open-preview']);
 
 const iconPath = computed(() => {
-  return props.app ? `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${props.app._category}/${props.app.Pkgname}/icon.png` : '';
+  return props.app ? `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${props.app._category}/${props.app.Pkgname}/icon.png` : '';
 });
 
 const closeModal = () => {

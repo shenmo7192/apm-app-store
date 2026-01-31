@@ -4,7 +4,7 @@
       <img :src="amberLogo" alt="Amber PM" class="h-11 w-11 rounded-2xl bg-white/70 p-2 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800" />
       <div class="flex flex-col">
         <span class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">APM Store</span>
-        <span class="text-lg font-semibold text-slate-900 dark:text-white">APM x86 客户端商店</span>
+        <span class="text-lg font-semibold text-slate-900 dark:text-white">APM 客户端商店</span>
       </div>
     </div>
 

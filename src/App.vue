@@ -56,7 +56,7 @@ import DownloadDetail from './components/DownloadDetail.vue';
 import InstalledAppsModal from './components/InstalledAppsModal.vue';
 import UpdateAppsModal from './components/UpdateAppsModal.vue';
 import UninstallConfirmModal from './components/UninstallConfirmModal.vue';
-import { APM_STORE_ARCHITECTURE, APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
+import { APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
 import { downloads } from './global/downloadStatus';
 import { handleInstall, handleRetry, handleUpgrade } from './modeuls/processInstall';
 
@@ -173,7 +173,7 @@ const checkAppInstalled = (app) => {
 const loadScreenshots = (app) => {
   screenshots.value = [];
   for (let i = 1; i <= 5; i++) {
-    const screenshotUrl = `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${app._category}/${app.Pkgname}/screen_${i}.png`;
+    const screenshotUrl = `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${app._category}/${app.Pkgname}/screen_${i}.png`;
     const img = new Image();
     img.src = screenshotUrl;
     img.onload = () => {
@@ -480,7 +480,7 @@ const openDownloadedApp = (download) => {
 
 const loadCategories = async () => {
   try {
-    const response = await axiosInstance.get(`/${APM_STORE_ARCHITECTURE}/categories.json`);
+    const response = await axiosInstance.get(`/${window.apm_store.arch}/categories.json`);
     categories.value = response.data;
   } catch (error) {
     logger.error('读取 categories.json 失败', error);
@@ -493,7 +493,7 @@ const loadApps = async () => {
     logger.info('开始加载应用数据...');
     const promises = Object.keys(categories.value).map(async category => {
       try {
-        const response = await axiosInstance.get(`/${APM_STORE_ARCHITECTURE}/${category}/applist.json`);
+        const response = await axiosInstance.get(`/${window.apm_store.arch}/${category}/applist.json`);
         return response.status === 200 ? response.data : [];
       } catch {
         return [];

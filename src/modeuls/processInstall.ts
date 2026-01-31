@@ -3,7 +3,7 @@
 // })
 
 import { currentApp, currentAppIsInstalled } from "../global/storeConfig";
-import { APM_STORE_BASE_URL, APM_STORE_ARCHITECTURE } from "../global/storeConfig";
+import { APM_STORE_BASE_URL } from "../global/storeConfig";
 import { downloads } from "../global/downloadStatus";
 
 import { InstallLog, DownloadItem, DownloadResult } from '../global/typedefinition';
@@ -20,7 +20,7 @@ export const handleInstall = () => {
     name: currentApp.value.Name,
     pkgname: currentApp.value.Pkgname,
     version: currentApp.value.Version,
-    icon: `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${currentApp.value._category}/${currentApp.value.Pkgname}/icon.png`,
+    icon: `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE()}/${currentApp.value._category}/${currentApp.value.Pkgname}/icon.png`,
     status: 'queued',
     progress: 0,
     downloadedSize: 0,
@@ -62,7 +62,7 @@ export const handleUpgrade = (pkg: any) => {
     name: pkg.Name,
     pkgname: pkg.Pkgname,
     version: pkg.Version,
-    icon: `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE}/${pkg._category}/${pkg.Pkgname}/icon.png`,
+    icon: `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${pkg._category}/${pkg.Pkgname}/icon.png`,
     status: 'queued',
     progress: 0,
     downloadedSize: 0,

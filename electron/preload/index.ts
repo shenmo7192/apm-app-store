@@ -23,6 +23,17 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // ...
 })
 
+contextBridge.exposeInMainWorld('apm_store', {
+  arch: (() => {
+    const arch = process.arch;
+    if (arch === 'x64') {
+      return 'amd64' + '-apm';
+    } else {
+      return arch + '-apm';
+    }
+  })()
+});
+
 // --------- Preload scripts loading ---------
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise((resolve) => {
