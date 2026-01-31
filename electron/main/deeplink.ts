@@ -3,6 +3,9 @@
  * Author: juxnpxblo@github
  */
 import { app } from "electron";
+import pino from "pino";
+
+const logger = pino({ 'name': 'deeplink.ts' });
 type Query = Record<string, string>;
 export type Listener = (query: Query) => any;
 
@@ -48,13 +51,13 @@ const listeners = new ListenersMap();
 export const deepLink = {
   on: (event: string, listener: Listener) => {
     const count = listeners.add(event, listener);
-    console.log(
+    logger.info(
       `Deep link: listener added for event ${event}. Total event listeners: ${count}`
     );
   },
   off: (event: string, listener: Listener) => {
     const count = listeners.remove(event, listener);
-    console.log(
+    logger.info(
       `Deep link: listener removed for event ${event}. Total event listeners: ${count}`
     );
   },
@@ -67,29 +70,33 @@ export const deepLink = {
   },
 };
 
-app.on("second-instance", (_e, commandLine) => {
+export function handleCommandLine(commandLine: string[]) {
   const target = commandLine.find((arg) =>
     protocols.some((protocol) => arg.startsWith(protocol + "://"))
   );
   if (!target) return;
 
-  console.log(`Deep link: protocol link got: ${target}`);
+  logger.info(`Deep link: protocol link got: ${target}`);
 
   try {
     const url = new URL(target);
 
     const action = url.hostname;
-    console.log(`Deep link: action found: ${action}`);
+    logger.info(`Deep link: action found: ${action}`);
 
     const query: Query = {};
     url.searchParams.forEach((value, key) => {
       query[key] = value;
     });
-    console.log(`Deep link: query found: ${JSON.stringify(query)}`);
+    logger.info(`Deep link: query found: ${JSON.stringify(query)}`);
 
     const emitCount = listeners.emit(action, query);
-    console.log(`Deep link: emitted for ${emitCount} listeners`);
+    logger.info(`Deep link: emitted for ${emitCount} listeners`);
   } catch (error) {
-    console.error(`Deep link: error parsing URL: ${error}`);
+    logger.error(`Deep link: error parsing URL: ${error}`);
   }
+}
+
+app.on("second-instance", (_e, commandLine) => {
+  handleCommandLine(commandLine);
 });

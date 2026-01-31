@@ -1,17 +1,22 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import pino from 'pino'
+import { handleCommandLine } from './deeplink.js'
+import { isLoaded } from '../global.js'
+
 
 // Assure single instance application
 if (!app.requestSingleInstanceLock()) {
   app.exit(0);
 }
 
-import './handle-url-scheme.js'
 import './backend/install-manager.js'
+import './handle-url-scheme.js'
 
+const logger = pino({ 'name': 'index.ts' });
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -79,6 +84,7 @@ async function createWindow() {
   // Test actively push message to the Electron-Renderer
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
+    logger.info('Renderer process is ready.');
   })
 
   // Make all links open with the browser, not with the application
@@ -89,7 +95,16 @@ async function createWindow() {
   // win.webContents.on('will-navigate', (event, url) => { }) #344
 }
 
-app.whenReady().then(createWindow)
+ipcMain.on('renderer-ready', (event, args) => {
+  logger.info('Received renderer-ready event with args: ' + JSON.stringify(args));
+  isLoaded.value = args.status;
+  logger.info(`isLoaded set to: ${isLoaded.value}`);
+})
+
+app.whenReady().then(() => {
+  createWindow()
+  handleCommandLine(process.argv)
+})
 
 app.on('window-all-closed', () => {
   win = null

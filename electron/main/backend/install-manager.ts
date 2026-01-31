@@ -4,7 +4,7 @@ import readline from 'node:readline';
 import { promisify } from 'node:util';
 import pino from 'pino';
 
-const logger = pino({ 'name': 'download-manager' });
+const logger = pino({ 'name': 'install-manager' });
 
 type InstallTask = {
   id: number;

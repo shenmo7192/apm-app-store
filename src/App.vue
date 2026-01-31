@@ -588,6 +588,9 @@ onMounted(async () => {
       tryOpen();
     }
   });
+
+  window.ipcRenderer.send('renderer-ready', { status: true });
+  logger.info('Renderer process is ready!');
 });
 
 // 观察器
