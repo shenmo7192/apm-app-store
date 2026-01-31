@@ -27,8 +27,6 @@ on:
       - ".gitignore"
       - ".github/**"
       - "!.github/workflows/build.yml"
-  release:
-    types: [published, created]
 
 permissions:
   contents: write
