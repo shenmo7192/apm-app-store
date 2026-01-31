@@ -125,6 +125,7 @@ apm-app-store/
 │   │   ├── ScreenPreview.vue # 截图预览
 │   │   ├── ThemeToggle.vue   # 主题切换
 │   │   ├── TopActions.vue    # 顶部操作栏
+│   │   ├── UninstallConfirmModal.vue # 卸载确认及进度弹窗
 │   │   └── UpdateAppsModal.vue # 应用更新弹窗
 │   ├── global/               # 全局配置与状态
 │   │   ├── downloadStatus.ts # 下载状态管理
