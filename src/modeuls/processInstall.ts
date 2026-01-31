@@ -1,6 +1,7 @@
 // window.ipcRenderer.on('main-process-message', (_event, ...args) => {
 //   console.log('[Receive Main-process message]:', ...args)
 // })
+import pino from 'pino';
 
 import { currentApp, currentAppIsInstalled } from "../global/storeConfig";
 import { APM_STORE_BASE_URL } from "../global/storeConfig";
@@ -9,9 +10,15 @@ import { downloads } from "../global/downloadStatus";
 import { InstallLog, DownloadItem, DownloadResult, App } from '../global/typedefinition';
 
 let downloadIdCounter = 0;
+const logger = pino({ name: 'processInstall.ts' });
 
 export const handleInstall = () => {
   if (!currentApp.value?.pkgname) return;
+
+  if (downloads.value.find(d => d.pkgname === currentApp.value?.pkgname)) {
+    logger.info(`任务已存在，忽略重复添加: ${currentApp.value.pkgname}`);
+    return;
+  }
 
   downloadIdCounter += 1;
   // 创建下载任务
@@ -55,6 +62,11 @@ export const handleRetry = (download_: DownloadItem) => {
 
 export const handleUpgrade = (app: App) => {
   if (!app.pkgname) return;
+
+  if (downloads.value.find(d => d.pkgname === app.pkgname)) {
+    logger.info(`任务已存在，忽略重复添加: ${app.pkgname}`);
+    return;
+  }
 
   downloadIdCounter += 1;
   const download: DownloadItem = {
