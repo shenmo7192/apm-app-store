@@ -149,17 +149,6 @@ ipcMain.on('queue-install', async (event, download_json) => {
     return;
   }
 
-  tasks.forEach((task) => {
-    if (task.pkgname === pkgname) {
-      task.webContents?.send('install-log', {
-        id: task.id,
-        time: Date.now(),
-        message: `软件包 ${pkgname} 已在安装队列中，忽略重复添加`
-      });
-      return;
-    }
-  });
-
   const webContents = event.sender;
 
   // 开始组装安装命令
