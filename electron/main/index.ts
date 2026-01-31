@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
+import fs from 'node:fs'
 import pino from 'pino'
 import { handleCommandLine } from './deeplink.js'
 import { isLoaded } from '../global.js'
@@ -93,6 +94,14 @@ async function createWindow() {
     return { action: 'deny' }
   })
   // win.webContents.on('will-navigate', (event, url) => { }) #344
+
+  win.on('close', (event) => {
+    // 截获 close 默认行为
+    event.preventDefault();
+    // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
+    win.hide();
+    win.setSkipTaskbar(true);
+  })
 }
 
 ipcMain.on('renderer-ready', (event, args) => {
@@ -127,6 +136,55 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+// 设置托盘
+// 获取图标路径
+function getIconPath() {
+  let iconPath = "";
+    const iconFile = process.platform === "win32" ? "amber-pm-logo.ico" : "amber-pm-logo.png"; // 图标文件名，linux下需要png格式，不然会不显示
+  // 判断是否在打包模式
+  if (app.isPackaged) {
+    // 打包模式
+    iconPath = path.join(process.resourcesPath, "icons", iconFile); // 路径根据自身情况调整
+  } else {
+    // 开发模式
+    const projectRoot = path.join(__dirname, "../.."); // __dirname 指向 dist-electron/main，但资源在项目根目录，所以..指向上一级
+    iconPath = path.join(projectRoot, "icons", iconFile);
+  }
+
+  // 检查文件是否存在
+  if (fs.existsSync(iconPath)) {
+    logger.info("图标文件存在:" + iconPath);
+    return iconPath;
+  } else {
+    logger.error("图标文件不存在:" + iconPath);
+    // 返回一个默认图标路径或null
+    return null;
+  }
+}
+
+let tray = null;
+app.whenReady().then(() => {
+    tray = new Tray(getIconPath());
+    const contextMenu = Menu.buildFromTemplate([{
+        label: '显示主界面',
+        click: () => { win.show() }
+    },
+    {
+        label: '退出程序',
+        click: () => { win.destroy() }
+    }
+    ]);
+    tray.setToolTip('APM 应用商店')
+    tray.setContextMenu(contextMenu)
+    // 双击触发
+    tray.on('click', () => {
+        // 双击通知区图标实现应用的显示或隐藏
+        win.isVisible() ? win.hide() : win.show()
+        win.isVisible() ? win.setSkipTaskbar(false) : win.setSkipTaskbar(true);
+    });
+})
+
 
 // New window example arg: new windows url
 // ipcMain.handle('open-win', (_, arg) => {
