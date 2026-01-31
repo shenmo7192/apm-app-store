@@ -1,5 +1,5 @@
 {
-  "name": "apm-app-store",
+  "name": "apm-store",
   "version": "1.0.3-beta.1",
   "main": "dist-electron/main/index.js",
   "description": "Client for APM App Store",

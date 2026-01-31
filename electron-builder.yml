@@ -1,7 +1,7 @@
 appId: "store.spark-app.apm"
 asar: true
-productName: "apm-app-store"
-artifactName: "apm-app-store_${version}_${os}_${arch}.${ext}"
+productName: "apm-store"
+artifactName: "apm-store_${version}_${os}_${arch}.${ext}"
 directories:
   output: "release/${version}"
 files:
@@ -17,7 +17,7 @@ extraResources:
 linux:
   icon: "icons/amber-pm-logo.icns"
   category: "System"
-  executableName: "apm-app-store"
+  executableName: "apm-store"
   desktop:
     entry:
       Name: "APM AppStore"
