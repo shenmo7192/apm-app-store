@@ -20,7 +20,7 @@ export const handleInstall = () => {
     name: currentApp.value.Name,
     pkgname: currentApp.value.Pkgname,
     version: currentApp.value.Version,
-    icon: `${APM_STORE_BASE_URL}/${APM_STORE_ARCHITECTURE()}/${currentApp.value._category}/${currentApp.value.Pkgname}/icon.png`,
+    icon: `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${currentApp.value._category}/${currentApp.value.Pkgname}/icon.png`,
     status: 'queued',
     progress: 0,
     downloadedSize: 0,

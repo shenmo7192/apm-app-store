@@ -1,7 +1,7 @@
 appId: "store.spark-app.apm"
 asar: true
 productName: "apm-app-store"
-artifactName: "apm-app-store_${version}_${os}.${ext}"
+artifactName: "apm-app-store_${version}_${os}_${arch}.${ext}"
 directories:
   output: "release/${version}"
 files:
