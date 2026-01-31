@@ -77,7 +77,12 @@ jobs:
           npm install
 
       - name: Build Release Files
-        run: ${{ matrix.package == 'deb' && 'npm run build:deb -- --${{ matrix.architecture }}' || matrix.package == 'rpm' && 'npm run build:rpm -- --${{ matrix.architecture }}' }}
+        run: |
+          if [ "${{ matrix.package }}" == "deb" ]; then
+            npm run build:deb -- --${{ matrix.architecture }}
+          elif [ "${{ matrix.package }}" == "rpm" ]; then
+            npm run build:rpm -- --${{ matrix.architecture }}
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
