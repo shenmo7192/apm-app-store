@@ -54,7 +54,7 @@ function launch_app() {
     [ -z "$exec_cmd" ] && return 1
 
     log.info "Launching: $exec_cmd"
-    ${SHELL:-bash} -i -c "$exec_cmd" &
+    ${SHELL:-bash} -c "$exec_cmd" &
 }
 
 # 导出函数供 ACE 环境调用
