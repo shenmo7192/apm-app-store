@@ -397,3 +397,14 @@ ipcMain.handle('uninstall-installed', async (_event, pkgname: string) => {
     message: success ? '卸载完成' : (stderr || stdout || `卸载失败，退出码 ${code}`)
   };
 });
+
+ipcMain.handle('launch-app', async (_event, pkgname: string) => {
+  if (!pkgname) {
+    logger.warn('No pkgname provided for launch-app');
+  }
+
+  const execCommand = 'dbus-launch';
+  const execParams = ['/opt/apm-app-store/extras/apm-launcher', 'start', pkgname];
+
+  await runCommandCapture(execCommand, execParams);
+});

@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# ===== 日志函数（简化版）=====
+log.info()  { echo "INFO: $*"; }
+log.warn()  { echo "WARN: $*"; }
+log.error() { echo "ERROR: $*"; }
+log.debug() { :; }  # APM 场景下可禁用 debug 日志
+
+# ===== APM 专用桌面文件扫描（单文件）=====
+function scan_apm_desktop_log() {
+    unset desktop_file_path
+    local pkg_name="$1"
+    local desktop_dir="/var/lib/apm/apm/files/ace-env/var/lib/apm/${pkg_name}/entries/applications"
+
+    [ -d "$desktop_dir" ] || return 1
+
+    while IFS= read -r -d '' path; do
+        [ -f "$path" ] || continue
+        if ! grep -q 'NoDisplay=true' "$path" 2>/dev/null; then
+            log.info "Found valid APM desktop file: $path"
+            export desktop_file_path="$path"
+            return 0
+        fi
+    done < <(find "$desktop_dir" -name "*.desktop" -type f -print0 2>/dev/null)
+
+    return 1
+}
+
+# ===== APM 专用桌面文件扫描（多文件列表）=====
+function scan_apm_desktop_list() {
+    local pkg_name="$1"
+    local desktop_dir="/var/lib/apm/apm/files/ace-env/var/lib/apm/${pkg_name}/entries/applications"
+    local result=""
+
+    [ -d "$desktop_dir" ] || { echo ""; return; }
+
+    while IFS= read -r -d '' path; do
+        [ -f "$path" ] || continue
+        if ! grep -q 'NoDisplay=true' "$path" 2>/dev/null; then
+            result+="${path},"
+        fi
+    done < <(find "$desktop_dir" -name "*.desktop" -type f -print0 2>/dev/null)
+
+    echo "${result%,}"
+}
+
+# ===== 启动应用 =====
+function launch_app() {
+    local desktop_path="${1#file://}"
+    local exec_cmd
+
+    # 提取并清理 Exec 行（移除字段代码如 %f %u 等）
+    exec_cmd=$(grep -m1 '^Exec=' "$desktop_path" | cut -d= -f2- | sed 's/%[fFuUdDnNickvm]*//g; s/^[[:space:]]*//; s/[[:space:]]*$//')
+    [ -z "$exec_cmd" ] && return 1
+
+    # ACE 环境内使用 host-spawn 在宿主显示图形界面
+    [ -n "$IS_ACE_ENV" ] && exec_cmd="host-spawn $exec_cmd"
+
+    log.info "Launching: $exec_cmd"
+    ${SHELL:-bash} -c "$exec_cmd" &
+}
+
+# 导出函数供 ACE 环境调用
+export -f launch_app scan_apm_desktop_log scan_apm_desktop_list log.info log.error
+
+# ===== 主逻辑 =====
+[ $# -lt 2 ] && {
+    log.error "Usage: $0 {check|list|launch|start} <apm-package-name>"
+    exit 1
+}
+
+action="$1"
+pkg_name="$2"
+
+case "$action" in
+    check)
+        if scan_apm_desktop_log "$pkg_name"; then
+            exit 0
+        else
+            exit 1
+        fi
+        ;;
+
+    list)
+        if result=$(scan_apm_desktop_list "$pkg_name"); [ -n "$result" ]; then
+            echo "$result"
+            exit 0
+        else
+            exit 1
+        fi
+        ;;
+
+    launch|start)
+        if scan_apm_desktop_log "$pkg_name" && launch_app "$desktop_file_path"; then
+            exit 0
+        else
+            exit 1
+        fi
+        ;;
+
+    *)
+        log.error "Invalid command: $action (supported: check|list|launch|start)"
+        exit 2
+        ;;
+esac

@@ -134,7 +134,7 @@ const emit = defineEmits<{
   (e: 'resume', download: DownloadItem): void;
   (e: 'cancel', download: DownloadItem): void;
   (e: 'retry', download: DownloadItem): void;
-  (e: 'open-app', download: DownloadItem): void;
+  (e: 'open-app', download: string): void;
 }>();
 
 
@@ -166,7 +166,7 @@ const retry = () => {
 
 const openApp = () => {
   if (props.download) {
-    emit('open-app', props.download);
+    emit('open-app', props.download.pkgname);
   }
 };
 

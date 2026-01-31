@@ -15,7 +15,7 @@
 
     <AppDetailModal data-app-modal="detail" :show="showModal" :app="currentApp" :screenshots="screenshots"
       :isinstalled="currentAppIsInstalled" @close="closeDetail" @install="handleInstall" @remove="requestUninstallFromDetail"
-      @open-preview="openScreenPreview" />
+      @open-preview="openScreenPreview" @open-app="openDownloadedApp" />
 
     <ScreenPreview :show="showPreview" :screenshots="screenshots" :current-screen-index="currentScreenIndex"
       @close="closeScreenPreview" @prev="prevScreen" @next="nextScreen" />
@@ -536,11 +536,12 @@ const closeDownloadDetail = () => {
   currentDownload.value = null;
 };
 
-const openDownloadedApp = (download: DownloadItem) => {
-  const encodedPkg = encodeURIComponent(download.pkgname);
-  openApmStoreUrl(`apmstore://launch?pkg=${encodedPkg}`, {
-    fallbackText: `打开应用: ${download.pkgname}`
-  });
+const openDownloadedApp = (pkgname: string) => {
+  // const encodedPkg = encodeURIComponent(download.pkgname);
+  // openApmStoreUrl(`apmstore://launch?pkg=${encodedPkg}`, {
+  //   fallbackText: `打开应用: ${download.pkgname}`
+  // });
+  window.ipcRenderer.invoke('launch-app', pkgname);
 };
 
 const loadCategories = async () => {

@@ -29,12 +29,20 @@
               <i class="fas" :class="installFeedback ? 'fa-check' : 'fa-download'"></i>
               <span>{{ installFeedback ? '已加入队列' : '安装' }}</span>
             </button>
-            <button v-else type="button"
-              class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 disabled:opacity-40 transition hover:-translate-y-0.5"
-              @click="handleRemove">
-              <i class="fas fa-trash"></i>
-              <span>卸载</span>
-            </button>
+            <template v-else>
+              <button type="button"
+                class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
+                @click="emit('open-app', app?.pkgname || '')">
+                <i class="fas fa-external-link-alt"></i>
+                <span>打开</span>
+              </button>
+              <button type="button"
+                class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 disabled:opacity-40 transition hover:-translate-y-0.5"
+                @click="handleRemove">
+                <i class="fas fa-trash"></i>
+                <span>卸载</span>
+              </button>
+            </template>
             <button type="button"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/70 text-slate-500 transition hover:text-slate-900 dark:border-slate-700"
               @click="closeModal" aria-label="关闭">
@@ -119,6 +127,7 @@ const emit = defineEmits<{
   (e: 'install'): void;
   (e: 'remove'): void;
   (e: 'open-preview', index: number): void;
+  (e: 'open-app', pkgname: string ): void;
 }>();
 
 
