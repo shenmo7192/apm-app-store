@@ -1,67 +1,148 @@
 <template>
   <div
-    class="flex min-h-screen flex-col bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 lg:flex-row">
+    class="flex min-h-screen flex-col bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100 lg:flex-row"
+  >
     <aside
-      class="w-full border-b border-slate-200/70 bg-white/80 px-5 py-6 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/70 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:flex-col lg:border-b-0 lg:border-r">
-      <AppSidebar :categories="categories" :active-category="activeCategory" :category-counts="categoryCounts"
-        :is-dark-theme="isDarkTheme" @toggle-theme="toggleTheme" @select-category="selectCategory" />
+      class="w-full border-b border-slate-200/70 bg-white/80 px-5 py-6 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/70 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:flex-col lg:border-b-0 lg:border-r"
+    >
+      <AppSidebar
+        :categories="categories"
+        :active-category="activeCategory"
+        :category-counts="categoryCounts"
+        :is-dark-theme="isDarkTheme"
+        @toggle-theme="toggleTheme"
+        @select-category="selectCategory"
+      />
     </aside>
 
     <main class="flex-1 px-4 py-6 lg:px-10">
-      <AppHeader :search-query="searchQuery" :apps-count="filteredApps.length" @update-search="handleSearchInput"
-        @update="handleUpdate" @list="handleList" />
-      <AppGrid :apps="filteredApps" :loading="loading" @open-detail="openDetail" />
+      <AppHeader
+        :search-query="searchQuery"
+        :apps-count="filteredApps.length"
+        @update-search="handleSearchInput"
+        @update="handleUpdate"
+        @list="handleList"
+      />
+      <AppGrid
+        :apps="filteredApps"
+        :loading="loading"
+        @open-detail="openDetail"
+      />
     </main>
 
-    <AppDetailModal data-app-modal="detail" :show="showModal" :app="currentApp" :screenshots="screenshots"
-      :isinstalled="currentAppIsInstalled" @close="closeDetail" @install="handleInstall" @remove="requestUninstallFromDetail"
-      @open-preview="openScreenPreview" @open-app="openDownloadedApp" />
+    <AppDetailModal
+      data-app-modal="detail"
+      :show="showModal"
+      :app="currentApp"
+      :screenshots="screenshots"
+      :isinstalled="currentAppIsInstalled"
+      @close="closeDetail"
+      @install="handleInstall"
+      @remove="requestUninstallFromDetail"
+      @open-preview="openScreenPreview"
+      @open-app="openDownloadedApp"
+    />
 
-    <ScreenPreview :show="showPreview" :screenshots="screenshots" :current-screen-index="currentScreenIndex"
-      @close="closeScreenPreview" @prev="prevScreen" @next="nextScreen" />
+    <ScreenPreview
+      :show="showPreview"
+      :screenshots="screenshots"
+      :current-screen-index="currentScreenIndex"
+      @close="closeScreenPreview"
+      @prev="prevScreen"
+      @next="nextScreen"
+    />
 
-    <DownloadQueue :downloads="downloads" @pause="pauseDownload" @resume="resumeDownload"
-      @cancel="cancelDownload" @retry="retryDownload" @clear-completed="clearCompletedDownloads"
-      @show-detail="showDownloadDetailModalFunc" />
+    <DownloadQueue
+      :downloads="downloads"
+      @pause="pauseDownload"
+      @resume="resumeDownload"
+      @cancel="cancelDownload"
+      @retry="retryDownload"
+      @clear-completed="clearCompletedDownloads"
+      @show-detail="showDownloadDetailModalFunc"
+    />
 
-    <DownloadDetail :show="showDownloadDetailModal" :download="currentDownload" @close="closeDownloadDetail"
-      @pause="pauseDownload" @resume="resumeDownload" @cancel="cancelDownload" @retry="retryDownload"
-      @open-app="openDownloadedApp" />
+    <DownloadDetail
+      :show="showDownloadDetailModal"
+      :download="currentDownload"
+      @close="closeDownloadDetail"
+      @pause="pauseDownload"
+      @resume="resumeDownload"
+      @cancel="cancelDownload"
+      @retry="retryDownload"
+      @open-app="openDownloadedApp"
+    />
 
-    <InstalledAppsModal :show="showInstalledModal" :apps="installedApps" :loading="installedLoading"
-      :error="installedError" @close="closeInstalledModal" @refresh="refreshInstalledApps"
-      @uninstall="uninstallInstalledApp" />
+    <InstalledAppsModal
+      :show="showInstalledModal"
+      :apps="installedApps"
+      :loading="installedLoading"
+      :error="installedError"
+      @close="closeInstalledModal"
+      @refresh="refreshInstalledApps"
+      @uninstall="uninstallInstalledApp"
+    />
 
-    <UpdateAppsModal :show="showUpdateModal" :apps="upgradableApps" :loading="updateLoading"
-      :error="updateError" :has-selected="hasSelectedUpgrades" @close="closeUpdateModal"
-      @refresh="refreshUpgradableApps" @toggle-all="toggleAllUpgrades"
-      @upgrade-selected="upgradeSelectedApps" @upgrade-one="upgradeSingleApp" />
+    <UpdateAppsModal
+      :show="showUpdateModal"
+      :apps="upgradableApps"
+      :loading="updateLoading"
+      :error="updateError"
+      :has-selected="hasSelectedUpgrades"
+      @close="closeUpdateModal"
+      @refresh="refreshUpgradableApps"
+      @toggle-all="toggleAllUpgrades"
+      @upgrade-selected="upgradeSelectedApps"
+      @upgrade-one="upgradeSingleApp"
+    />
 
-    <UninstallConfirmModal :show="showUninstallModal" :app="uninstallTargetApp" @close="closeUninstallModal"
-      @success="onUninstallSuccess" />
+    <UninstallConfirmModal
+      :show="showUninstallModal"
+      :app="uninstallTargetApp"
+      @close="closeUninstallModal"
+      @success="onUninstallSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
-import axios from 'axios';
-import pino from 'pino';
-import AppSidebar from './components/AppSidebar.vue';
-import AppHeader from './components/AppHeader.vue';
-import AppGrid from './components/AppGrid.vue';
-import AppDetailModal from './components/AppDetailModal.vue';
-import ScreenPreview from './components/ScreenPreview.vue';
-import DownloadQueue from './components/DownloadQueue.vue';
-import DownloadDetail from './components/DownloadDetail.vue';
-import InstalledAppsModal from './components/InstalledAppsModal.vue';
-import UpdateAppsModal from './components/UpdateAppsModal.vue';
-import UninstallConfirmModal from './components/UninstallConfirmModal.vue';
-import { APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
-import { downloads, removeDownloadItem, watchDownloadsChange } from './global/downloadStatus';
-import { handleInstall, handleRetry, handleUpgrade } from './modeuls/processInstall';
-import type { App, AppJson, DownloadItem, UpdateAppItem, ChannelPayload } from './global/typedefinition';
-import type { Ref } from 'vue';
-import type { IpcRendererEvent } from 'electron';
+import { ref, computed, onMounted, watch, nextTick } from "vue";
+import axios from "axios";
+import pino from "pino";
+import AppSidebar from "./components/AppSidebar.vue";
+import AppHeader from "./components/AppHeader.vue";
+import AppGrid from "./components/AppGrid.vue";
+import AppDetailModal from "./components/AppDetailModal.vue";
+import ScreenPreview from "./components/ScreenPreview.vue";
+import DownloadQueue from "./components/DownloadQueue.vue";
+import DownloadDetail from "./components/DownloadDetail.vue";
+import InstalledAppsModal from "./components/InstalledAppsModal.vue";
+import UpdateAppsModal from "./components/UpdateAppsModal.vue";
+import UninstallConfirmModal from "./components/UninstallConfirmModal.vue";
+import {
+  APM_STORE_BASE_URL,
+  currentApp,
+  currentAppIsInstalled,
+} from "./global/storeConfig";
+import {
+  downloads,
+  removeDownloadItem,
+  watchDownloadsChange,
+} from "./global/downloadStatus";
+import {
+  handleInstall,
+  handleRetry,
+  handleUpgrade,
+} from "./modeuls/processInstall";
+import type {
+  App,
+  AppJson,
+  DownloadItem,
+  UpdateAppItem,
+  ChannelPayload,
+} from "./global/typedefinition";
+import type { Ref } from "vue";
+import type { IpcRendererEvent } from "electron";
 const logger = pino();
 
 // Axios 全局配置
@@ -74,8 +155,8 @@ const axiosInstance = axios.create({
 const isDarkTheme = ref(false);
 const categories: Ref<Record<string, string>> = ref({});
 const apps: Ref<App[]> = ref([]);
-const activeCategory = ref('all');
-const searchQuery = ref('');
+const activeCategory = ref("all");
+const searchQuery = ref("");
 const showModal = ref(false);
 const showPreview = ref(false);
 const currentScreenIndex = ref(0);
@@ -86,11 +167,13 @@ const currentDownload: Ref<DownloadItem | null> = ref(null);
 const showInstalledModal = ref(false);
 const installedApps = ref<App[]>([]);
 const installedLoading = ref(false);
-const installedError = ref('');
+const installedError = ref("");
 const showUpdateModal = ref(false);
-const upgradableApps = ref<(App & { selected: boolean; upgrading: boolean })[]>([]);
+const upgradableApps = ref<(App & { selected: boolean; upgrading: boolean })[]>(
+  [],
+);
 const updateLoading = ref(false);
-const updateError = ref('');
+const updateError = ref("");
 const showUninstallModal = ref(false);
 const uninstallTargetApp: Ref<App | null> = ref(null);
 
@@ -99,19 +182,21 @@ const filteredApps = computed(() => {
   let result = [...apps.value];
 
   // 按分类筛选
-  if (activeCategory.value !== 'all') {
-    result = result.filter(app => app.category === activeCategory.value);
+  if (activeCategory.value !== "all") {
+    result = result.filter((app) => app.category === activeCategory.value);
   }
 
   // 按搜索关键词筛选
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim();
-    result = result.filter(app => {
+    result = result.filter((app) => {
       // 兼容可能为 undefined 的情况，虽然类型定义是 string
-      return ((app.name || '').toLowerCase().includes(q) ||
-        (app.pkgname || '').toLowerCase().includes(q) ||
-        (app.tags || '').toLowerCase().includes(q) ||
-        (app.more || '').toLowerCase().includes(q));
+      return (
+        (app.name || "").toLowerCase().includes(q) ||
+        (app.pkgname || "").toLowerCase().includes(q) ||
+        (app.tags || "").toLowerCase().includes(q) ||
+        (app.more || "").toLowerCase().includes(q)
+      );
     });
   }
 
@@ -120,7 +205,7 @@ const filteredApps = computed(() => {
 
 const categoryCounts = computed(() => {
   const counts: Record<string, number> = { all: apps.value.length };
-  apps.value.forEach(app => {
+  apps.value.forEach((app) => {
     if (!counts[app.category]) counts[app.category] = 0;
     counts[app.category]++;
   });
@@ -128,17 +213,17 @@ const categoryCounts = computed(() => {
 });
 
 const hasSelectedUpgrades = computed(() => {
-  return upgradableApps.value.some(app => app.selected);
+  return upgradableApps.value.some((app) => app.selected);
 });
 
 // 方法
 const syncThemePreference = (enabled: boolean) => {
-  document.documentElement.classList.toggle('dark', enabled);
+  document.documentElement.classList.toggle("dark", enabled);
 };
 
 const initTheme = () => {
-  const savedTheme = localStorage.getItem('theme');
-  isDarkTheme.value = savedTheme === 'dark';
+  const savedTheme = localStorage.getItem("theme");
+  isDarkTheme.value = savedTheme === "dark";
   syncThemePreference(isDarkTheme.value);
 };
 
@@ -162,15 +247,19 @@ const openDetail = (app: App) => {
 
   // 确保模态框显示后滚动到顶部
   nextTick(() => {
-    const modal = document.querySelector('[data-app-modal="detail"] .modal-panel');
+    const modal = document.querySelector(
+      '[data-app-modal="detail"] .modal-panel',
+    );
     if (modal) modal.scrollTop = 0;
   });
 };
 
 const checkAppInstalled = (app: App) => {
-  window.ipcRenderer.invoke('check-installed', app.pkgname).then((isInstalled: boolean) => {
-    currentAppIsInstalled.value = isInstalled;
-  });
+  window.ipcRenderer
+    .invoke("check-installed", app.pkgname)
+    .then((isInstalled: boolean) => {
+      currentAppIsInstalled.value = isInstalled;
+    });
 };
 
 const loadScreenshots = (app: App) => {
@@ -230,12 +319,12 @@ const closeUpdateModal = () => {
 
 const refreshUpgradableApps = async () => {
   updateLoading.value = true;
-  updateError.value = '';
+  updateError.value = "";
   try {
-    const result = await window.ipcRenderer.invoke('list-upgradable');
+    const result = await window.ipcRenderer.invoke("list-upgradable");
     if (!result?.success) {
       upgradableApps.value = [];
-      updateError.value = result?.message || '检查更新失败';
+      updateError.value = result?.message || "检查更新失败";
       return;
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -244,32 +333,34 @@ const refreshUpgradableApps = async () => {
       // Map properties if needed or assume main matches App interface except field names might differ
       // For now assuming result.apps returns objects compatible with App for core fields,
       // but let's normalize just in case if main returns different structure.
-      name: app.name || app.Name || '',
-      pkgname: app.pkgname || app.Pkgname || '',
-      version: app.newVersion || app.version || '',
-      category: app.category || 'unknown',
+      name: app.name || app.Name || "",
+      pkgname: app.pkgname || app.Pkgname || "",
+      version: app.newVersion || app.version || "",
+      category: app.category || "unknown",
       selected: false,
-      upgrading: false
+      upgrading: false,
     }));
   } catch (error: unknown) {
     upgradableApps.value = [];
-    updateError.value = (error as Error)?.message || '检查更新失败';
+    updateError.value = (error as Error)?.message || "检查更新失败";
   } finally {
     updateLoading.value = false;
   }
 };
 
 const toggleAllUpgrades = () => {
-  const shouldSelectAll = !hasSelectedUpgrades.value || upgradableApps.value.some(app => !app.selected);
-  upgradableApps.value = upgradableApps.value.map(app => ({
+  const shouldSelectAll =
+    !hasSelectedUpgrades.value ||
+    upgradableApps.value.some((app) => !app.selected);
+  upgradableApps.value = upgradableApps.value.map((app) => ({
     ...app,
-    selected: shouldSelectAll ? true : false
+    selected: shouldSelectAll ? true : false,
   }));
 };
 
 const upgradeSingleApp = (app: UpdateAppItem) => {
   if (!app?.pkgname) return;
-  const target = apps.value.find(a => a.pkgname === app.pkgname);
+  const target = apps.value.find((a) => a.pkgname === app.pkgname);
   if (target) {
     handleUpgrade(target);
   } else {
@@ -278,28 +369,28 @@ const upgradeSingleApp = (app: UpdateAppItem) => {
     let minimalApp: App = {
       name: app.pkgname,
       pkgname: app.pkgname,
-      version: app.newVersion || '',
-      category: 'unknown',
-      tags: '',
-      more: '',
-      filename: '',
-      torrent_address: '',
-      author: '',
-      contributor: '',
-      website: '',
-      update: '',
-      size: '',
+      version: app.newVersion || "",
+      category: "unknown",
+      tags: "",
+      more: "",
+      filename: "",
+      torrent_address: "",
+      author: "",
+      contributor: "",
+      website: "",
+      update: "",
+      size: "",
       img_urls: [],
-      icons: '',
-      currentStatus: 'installed'
-    }
+      icons: "",
+      currentStatus: "installed",
+    };
     handleUpgrade(minimalApp);
   }
 };
 
 const upgradeSelectedApps = () => {
-  const selectedApps = upgradableApps.value.filter(app => app.selected);
-  selectedApps.forEach(app => {
+  const selectedApps = upgradableApps.value.filter((app) => app.selected);
+  selectedApps.forEach((app) => {
     upgradeSingleApp(app);
   });
 };
@@ -315,50 +406,50 @@ const closeInstalledModal = () => {
 
 const refreshInstalledApps = async () => {
   installedLoading.value = true;
-  installedError.value = '';
+  installedError.value = "";
   try {
-    const result = await window.ipcRenderer.invoke('list-installed');
+    const result = await window.ipcRenderer.invoke("list-installed");
     if (!result?.success) {
       installedApps.value = [];
-      installedError.value = result?.message || '读取已安装应用失败';
+      installedError.value = result?.message || "读取已安装应用失败";
       return;
     }
-      
-    installedApps.value = []
+
+    installedApps.value = [];
     for (const app of result.apps) {
-      let appInfo = apps.value.find(a => a.pkgname === app.pkgname);
+      let appInfo = apps.value.find((a) => a.pkgname === app.pkgname);
       if (appInfo) {
         appInfo.flags = app.flags;
         appInfo.arch = app.arch;
-        appInfo.currentStatus = 'installed';
+        appInfo.currentStatus = "installed";
       } else {
         // 如果在当前应用列表中找不到该应用，创建一个最小的 App 对象
         appInfo = {
           name: app.name || app.pkgname,
           pkgname: app.pkgname,
           version: app.version,
-          category: 'unknown',
-          tags: '',
-          more: '',
-          filename: '',
-          torrent_address: '',
-          author: '',
-          contributor: '',
-          website: '',
-          update: '',
-          size: '',
+          category: "unknown",
+          tags: "",
+          more: "",
+          filename: "",
+          torrent_address: "",
+          author: "",
+          contributor: "",
+          website: "",
+          update: "",
+          size: "",
           img_urls: [],
-          icons: '',
-          currentStatus: 'installed',
+          icons: "",
+          currentStatus: "installed",
           arch: app.arch,
-          flags: app.flags
+          flags: app.flags,
         };
       }
       installedApps.value.push(appInfo);
     }
   } catch (error: unknown) {
     installedApps.value = [];
-    installedError.value = (error as Error)?.message || '读取已安装应用失败';
+    installedError.value = (error as Error)?.message || "读取已安装应用失败";
   } finally {
     installedLoading.value = false;
   }
@@ -366,7 +457,7 @@ const refreshInstalledApps = async () => {
 
 const requestUninstall = (app: App) => {
   let target = null;
-  target = apps.value.find(a => a.pkgname === app.pkgname) || app;
+  target = apps.value.find((a) => a.pkgname === app.pkgname) || app;
 
   if (target) {
     uninstallTargetApp.value = target as App;
@@ -399,10 +490,10 @@ const onUninstallSuccess = () => {
 };
 
 const installCompleteCallback = () => {
-   if (currentApp.value) {
+  if (currentApp.value) {
     checkAppInstalled(currentApp.value);
   }
-}
+};
 
 watchDownloadsChange(installCompleteCallback);
 
@@ -412,24 +503,25 @@ const uninstallInstalledApp = (app: App) => {
 
 // 目前 APM 商店不能暂停下载（因为 APM 本身不支持），但保留这些方法以备将来使用
 const pauseDownload = (id: DownloadItem) => {
-  const download = downloads.value.find(d => d.id === id.id);
-  if (download && download.status === 'installing') { // 'installing' matches type definition, previously 'downloading'
-    download.status = 'paused';
+  const download = downloads.value.find((d) => d.id === id.id);
+  if (download && download.status === "installing") {
+    // 'installing' matches type definition, previously 'downloading'
+    download.status = "paused";
     download.logs.push({
       time: Date.now(),
-      message: '下载已暂停'
+      message: "下载已暂停",
     });
   }
 };
 
 // 同理
 const resumeDownload = (id: DownloadItem) => {
-  const download = downloads.value.find(d => d.id === id.id);
-  if (download && download.status === 'paused') {
-    download.status = 'installing'; // previously 'downloading'
+  const download = downloads.value.find((d) => d.id === id.id);
+  if (download && download.status === "paused") {
+    download.status = "installing"; // previously 'downloading'
     download.logs.push({
       time: Date.now(),
-      message: '继续下载...'
+      message: "继续下载...",
     });
     // simulateDownload(download); // removed or undefined?
   }
@@ -437,14 +529,14 @@ const resumeDownload = (id: DownloadItem) => {
 
 // 同理
 const cancelDownload = (id: DownloadItem) => {
-  const index = downloads.value.findIndex(d => d.id === id.id);
+  const index = downloads.value.findIndex((d) => d.id === id.id);
   if (index !== -1) {
     const download = downloads.value[index];
     // download.status = 'cancelled'; // 'cancelled' not in DownloadItem type union? Check type
-    download.status = 'failed'; // Use 'failed' or add 'cancelled' to type if needed. User asked to keep type simple.
+    download.status = "failed"; // Use 'failed' or add 'cancelled' to type if needed. User asked to keep type simple.
     download.logs.push({
       time: Date.now(),
-      message: '下载已取消'
+      message: "下载已取消",
     });
     // 延迟删除，让用户看到取消状态
     setTimeout(() => {
@@ -455,21 +547,21 @@ const cancelDownload = (id: DownloadItem) => {
 };
 
 const retryDownload = (id: DownloadItem) => {
-  const download = downloads.value.find(d => d.id === id.id);
-  if (download && download.status === 'failed') {
-    download.status = 'queued';
+  const download = downloads.value.find((d) => d.id === id.id);
+  if (download && download.status === "failed") {
+    download.status = "queued";
     download.progress = 0;
     download.downloadedSize = 0;
     download.logs.push({
       time: Date.now(),
-      message: '重新开始下载...'
+      message: "重新开始下载...",
     });
     handleRetry(download);
   }
 };
 
 const clearCompletedDownloads = () => {
-  downloads.value = downloads.value.filter(d => d.status !== 'completed');
+  downloads.value = downloads.value.filter((d) => d.status !== "completed");
 };
 
 const showDownloadDetailModalFunc = (download: DownloadItem) => {
@@ -487,12 +579,14 @@ const openDownloadedApp = (pkgname: string) => {
   // openApmStoreUrl(`apmstore://launch?pkg=${encodedPkg}`, {
   //   fallbackText: `打开应用: ${download.pkgname}`
   // });
-  window.ipcRenderer.invoke('launch-app', pkgname);
+  window.ipcRenderer.invoke("launch-app", pkgname);
 };
 
 const loadCategories = async () => {
   try {
-    const response = await axiosInstance.get(`/${window.apm_store.arch}/categories.json`);
+    const response = await axiosInstance.get(
+      `/${window.apm_store.arch}/categories.json`,
+    );
     categories.value = response.data;
   } catch (error) {
     logger.error(`读取 categories.json 失败: ${error}`);
@@ -502,10 +596,12 @@ const loadCategories = async () => {
 const loadApps = async () => {
   loading.value = true;
   try {
-    logger.info('开始加载应用数据...');
-    const promises = Object.keys(categories.value).map(async category => {
+    logger.info("开始加载应用数据...");
+    const promises = Object.keys(categories.value).map(async (category) => {
       try {
-        const response = await axiosInstance.get<AppJson[]>(`/${window.apm_store.arch}/${category}/applist.json`);
+        const response = await axiosInstance.get<AppJson[]>(
+          `/${window.apm_store.arch}/${category}/applist.json`,
+        );
         return response.status === 200 ? response.data : [];
       } catch {
         return [];
@@ -532,10 +628,13 @@ const loadApps = async () => {
           size: appJson.Size,
           more: appJson.More,
           tags: appJson.Tags,
-          img_urls: typeof appJson.img_urls === 'string' ? JSON.parse(appJson.img_urls) : appJson.img_urls,
+          img_urls:
+            typeof appJson.img_urls === "string"
+              ? JSON.parse(appJson.img_urls)
+              : appJson.img_urls,
           icons: appJson.icons,
           category: category,
-          currentStatus: 'not-installed',
+          currentStatus: "not-installed",
         };
         apps.value.push(normalizedApp);
       });
@@ -559,19 +658,19 @@ onMounted(async () => {
   await loadApps();
 
   // 设置键盘导航
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener("keydown", (e) => {
     if (showPreview.value) {
-      if (e.key === 'Escape') closeScreenPreview();
-      if (e.key === 'ArrowLeft') prevScreen();
-      if (e.key === 'ArrowRight') nextScreen();
+      if (e.key === "Escape") closeScreenPreview();
+      if (e.key === "ArrowLeft") prevScreen();
+      if (e.key === "ArrowRight") nextScreen();
     }
-    if (showModal.value && e.key === 'Escape') {
+    if (showModal.value && e.key === "Escape") {
       closeDetail();
     }
   });
 
   // Deep link Handlers
-  window.ipcRenderer.on('deep-link-update', () => {
+  window.ipcRenderer.on("deep-link-update", () => {
     if (loading.value) {
       const stop = watch(loading, (val) => {
         if (!val) {
@@ -584,7 +683,7 @@ onMounted(async () => {
     }
   });
 
-  window.ipcRenderer.on('deep-link-installed', () => {
+  window.ipcRenderer.on("deep-link-installed", () => {
     if (loading.value) {
       const stop = watch(loading, (val) => {
         if (!val) {
@@ -597,43 +696,48 @@ onMounted(async () => {
     }
   });
 
-  window.ipcRenderer.on('deep-link-install', (_event: IpcRendererEvent, pkgname: string) => {
-    const tryOpen = () => {
-      const target = apps.value.find(a => a.pkgname === pkgname);
-      if (target) {
-        openDetail(target);
-      } else {
-        logger.warn(`Deep link: app ${pkgname} not found`);
-      }
-    };
-
-    if (loading.value) {
-      const stop = watch(loading, (val) => {
-        if (!val) {
-          tryOpen();
-          stop();
+  window.ipcRenderer.on(
+    "deep-link-install",
+    (_event: IpcRendererEvent, pkgname: string) => {
+      const tryOpen = () => {
+        const target = apps.value.find((a) => a.pkgname === pkgname);
+        if (target) {
+          openDetail(target);
+        } else {
+          logger.warn(`Deep link: app ${pkgname} not found`);
         }
-      });
-    } else {
-      tryOpen();
-    }
-  });
+      };
 
-  window.ipcRenderer.on('remove-complete', (_event: IpcRendererEvent, payload: ChannelPayload) => {
-    const pkgname = currentApp.value?.pkgname
-    if(payload.success && pkgname){
-      removeDownloadItem(pkgname);
-    }
-  });
+      if (loading.value) {
+        const stop = watch(loading, (val) => {
+          if (!val) {
+            tryOpen();
+            stop();
+          }
+        });
+      } else {
+        tryOpen();
+      }
+    },
+  );
 
+  window.ipcRenderer.on(
+    "remove-complete",
+    (_event: IpcRendererEvent, payload: ChannelPayload) => {
+      const pkgname = currentApp.value?.pkgname;
+      if (payload.success && pkgname) {
+        removeDownloadItem(pkgname);
+      }
+    },
+  );
 
-  window.ipcRenderer.send('renderer-ready', { status: true });
-  logger.info('Renderer process is ready!');
+  window.ipcRenderer.send("renderer-ready", { status: true });
+  logger.info("Renderer process is ready!");
 });
 
 // 观察器
 watch(isDarkTheme, (newVal) => {
-  localStorage.setItem('theme', newVal ? 'dark' : 'light');
+  localStorage.setItem("theme", newVal ? "dark" : "light");
   syncThemePreference(newVal);
 });
 </script>

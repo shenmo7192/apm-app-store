@@ -27,7 +27,9 @@
     "build:rpm": "vue-tsc --noEmit && vite build --mode production && electron-builder --config electron-builder.yml --linux rpm",
     "build:deb": "vue-tsc --noEmit && vite build --mode production && electron-builder --config electron-builder.yml --linux deb",
     "preview": "vite preview --mode debug",
-    "lint": "eslint --ext .ts,.vue src electron"
+    "lint": "eslint --ext .ts,.vue src electron",
+    "lint:fix": "eslint --ext .ts,.vue src electron --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue}\" \"electron/**/*.{ts,vue}\""
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.4",

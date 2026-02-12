@@ -5,7 +5,7 @@
 import { app } from "electron";
 import pino from "pino";
 
-const logger = pino({ 'name': 'deeplink.ts' });
+const logger = pino({ name: "deeplink.ts" });
 type Query = Record<string, string>;
 export type Listener = (query: Query) => void;
 
@@ -52,13 +52,13 @@ export const deepLink = {
   on: (event: string, listener: Listener) => {
     const count = listeners.add(event, listener);
     logger.info(
-      `Deep link: listener added for event ${event}. Total event listeners: ${count}`
+      `Deep link: listener added for event ${event}. Total event listeners: ${count}`,
     );
   },
   off: (event: string, listener: Listener) => {
     const count = listeners.remove(event, listener);
     logger.info(
-      `Deep link: listener removed for event ${event}. Total event listeners: ${count}`
+      `Deep link: listener removed for event ${event}. Total event listeners: ${count}`,
     );
   },
   once: (event: string, listener: Listener) => {
@@ -72,7 +72,7 @@ export const deepLink = {
 
 export function handleCommandLine(commandLine: string[]) {
   const target = commandLine.find((arg) =>
-    protocols.some((protocol) => arg.startsWith(protocol + "://"))
+    protocols.some((protocol) => arg.startsWith(protocol + "://")),
   );
   if (!target) return;
 

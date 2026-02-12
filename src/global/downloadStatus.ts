@@ -1,22 +1,22 @@
-import { computed,ComputedRef,ref,unref,watch } from "vue";
-import type { DownloadItem,DownloadItemStatus } from "./typedefinition";
+import { computed, ComputedRef, ref, unref, watch } from "vue";
+import type { DownloadItem, DownloadItemStatus } from "./typedefinition";
 
 export const downloads = ref<DownloadItem[]>([]);
 
-export function removeDownloadItem(pkgname:string) {
+export function removeDownloadItem(pkgname: string) {
   const list = downloads.value;
   for (let i = list.length - 1; i >= 0; i -= 1) {
     if (list[i].pkgname === pkgname) {
-      list.splice(i,1);
+      list.splice(i, 1);
     }
   }
 }
 
-export function watchDownloadsChange (cb: () => void) {
-  const statusById = new Map<number,DownloadItemStatus>();
+export function watchDownloadsChange(cb: () => void) {
+  const statusById = new Map<number, DownloadItemStatus>();
 
   for (const item of downloads.value) {
-    statusById.set(item.id,item.status);
+    statusById.set(item.id, item.status);
   }
 
   watch(
@@ -27,7 +27,7 @@ export function watchDownloadsChange (cb: () => void) {
         if (item.status === "completed" && prevStatus !== "completed") {
           cb();
         }
-        statusById.set(item.id,item.status);
+        statusById.set(item.id, item.status);
       }
 
       if (statusById.size > list.length) {
@@ -42,7 +42,7 @@ export function watchDownloadsChange (cb: () => void) {
   );
 }
 
-export function useDownloadItemStatus (
+export function useDownloadItemStatus(
   pkgname?: ComputedRef<string | undefined>,
 ) {
   const status: ComputedRef<DownloadItemStatus | undefined> = computed(() => {
@@ -63,7 +63,7 @@ export function useDownloadItemStatus (
   };
 }
 
-export function useInstallFeedback (pkgname?: ComputedRef<string | undefined>) {
+export function useInstallFeedback(pkgname?: ComputedRef<string | undefined>) {
   const installFeedback = computed(() => {
     const name = unref(pkgname);
     if (!name) return false;
