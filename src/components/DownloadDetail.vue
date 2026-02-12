@@ -146,18 +146,6 @@ const handleOverlayClick = () => {
   close();
 };
 
-const pause = () => {
-  // emit('pause', props.download.id);
-};
-
-const resume = () => {
-  // emit('resume', props.download.id);
-};
-
-const cancel = () => {
-  //emit('cancel', props.download.id);
-};
-
 const retry = () => {
   if (props.download) {
     emit('retry', props.download);

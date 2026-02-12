@@ -90,6 +90,7 @@ defineProps<{
   hasSelected: boolean;
 }>();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'refresh'): void;

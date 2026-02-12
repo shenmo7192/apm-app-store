@@ -59,8 +59,9 @@ import UninstallConfirmModal from './components/UninstallConfirmModal.vue';
 import { APM_STORE_BASE_URL, currentApp, currentAppIsInstalled } from './global/storeConfig';
 import { downloads, removeDownloadItem, watchDownloadsChange } from './global/downloadStatus';
 import { handleInstall, handleRetry, handleUpgrade } from './modeuls/processInstall';
-import type { App, AppJson, DownloadItem, UpdateAppItem, InstalledAppInfo, ChannelPayload } from './global/typedefinition';
+import type { App, AppJson, DownloadItem, UpdateAppItem, ChannelPayload } from './global/typedefinition';
 import type { Ref } from 'vue';
+import type { IpcRendererEvent } from 'electron';
 const logger = pino();
 
 // Axios 全局配置
@@ -250,9 +251,9 @@ const refreshUpgradableApps = async () => {
       selected: false,
       upgrading: false
     }));
-  } catch (error: any) {
+  } catch (error: unknown) {
     upgradableApps.value = [];
-    updateError.value = error?.message || '检查更新失败';
+    updateError.value = (error as Error)?.message || '检查更新失败';
   } finally {
     updateLoading.value = false;
   }
@@ -322,7 +323,7 @@ const refreshInstalledApps = async () => {
       installedError.value = result?.message || '读取已安装应用失败';
       return;
     }
-     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      
     installedApps.value = []
     for (const app of result.apps) {
       let appInfo = apps.value.find(a => a.pkgname === app.pkgname);
@@ -355,9 +356,9 @@ const refreshInstalledApps = async () => {
       }
       installedApps.value.push(appInfo);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     installedApps.value = [];
-    installedError.value = error?.message || '读取已安装应用失败';
+    installedError.value = (error as Error)?.message || '读取已安装应用失败';
   } finally {
     installedLoading.value = false;
   }
@@ -407,70 +408,6 @@ watchDownloadsChange(installCompleteCallback);
 
 const uninstallInstalledApp = (app: App) => {
   requestUninstall(app);
-};
-
-const openApmStoreUrl = (url: string, { fallbackText }: { fallbackText: string }) => {
-  try {
-    window.location.href = url;
-  } catch (e) {
-    showProtocolFallback(fallbackText);
-  }
-};
-
-const showProtocolFallback = (cmd: string) => {
-  const existing = document.getElementById('protocolFallbackBox');
-  if (existing) existing.remove();
-
-  const box = document.createElement('div');
-  box.id = 'protocolFallbackBox';
-  box.style.position = 'fixed';
-  box.style.right = '18px';
-  box.style.bottom = '18px';
-  box.style.zIndex = '2000';
-  box.style.boxShadow = 'var(--shadow)';
-  box.style.background = 'var(--card)';
-  box.style.borderRadius = '12px';
-  box.style.padding = '12px';
-  box.style.maxWidth = '420px';
-  box.style.fontSize = '13px';
-  box.innerHTML = `
-    <div style="font-weight:600;margin-bottom:6px;">无法直接启动本地应用？</div>
-    <div style="color:var(--muted);margin-bottom:8px;">请在终端执行下列命令，或检查系统是否已将 <code>apmstore://</code> 协议关联到 APM 处理程序。</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <code style="padding:6px 8px;border-radius:8px;background:var(--glass);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(cmd)}</code>
-      <button id="copyApmCmd" class="action-btn secondary" title="复制命令">复制</button>
-      <button id="dismissApmCmd" class="action-btn" title="关闭">关闭</button>
-    </div>
-  `;
-  document.body.appendChild(box);
-
-  document.getElementById('copyApmCmd')?.addEventListener('click', () => {
-    navigator.clipboard?.writeText(cmd).then(() => {
-      alert('命令已复制到剪贴板');
-    }).catch(() => {
-      prompt('请手动复制命令：', cmd);
-    });
-  });
-
-  document.getElementById('dismissApmCmd')?.addEventListener('click', () => {
-    box.remove();
-  });
-
-  // 自动消失
-  setTimeout(() => {
-    try { box.remove(); } catch (e) { }
-  }, 30000);
-};
-
-const escapeHtml = (s: string) => {
-  if (!s) return '';
-  return s.replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[c as '&' | '<' | '>' | '"' | "'"]);
 };
 
 // 目前 APM 商店不能暂停下载（因为 APM 本身不支持），但保留这些方法以备将来使用
@@ -660,7 +597,7 @@ onMounted(async () => {
     }
   });
 
-  window.ipcRenderer.on('deep-link-install', (_event: Electron.IpcRendererEvent, pkgname: string) => {
+  window.ipcRenderer.on('deep-link-install', (_event: IpcRendererEvent, pkgname: string) => {
     const tryOpen = () => {
       const target = apps.value.find(a => a.pkgname === pkgname);
       if (target) {
@@ -682,7 +619,7 @@ onMounted(async () => {
     }
   });
 
-  window.ipcRenderer.on('remove-complete', (_event: Electron.IpcRendererEvent, payload: ChannelPayload) => {
+  window.ipcRenderer.on('remove-complete', (_event: IpcRendererEvent, payload: ChannelPayload) => {
     const pkgname = currentApp.value?.pkgname
     if(payload.success && pkgname){
       removeDownloadItem(pkgname);

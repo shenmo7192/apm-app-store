@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from 'electron'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
@@ -19,7 +18,6 @@ import './backend/install-manager.js'
 import './handle-url-scheme.js'
 
 const logger = pino({ 'name': 'index.ts' });
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // The built directory structure
@@ -187,8 +185,13 @@ app.whenReady().then(() => {
     // 双击触发
     tray.on('click', () => {
         // 双击通知区图标实现应用的显示或隐藏
-        win.isVisible() ? win.hide() : win.show()
-        win.isVisible() ? win.setSkipTaskbar(false) : win.setSkipTaskbar(true);
+        if (win.isVisible()) {
+            win.hide();
+            win.setSkipTaskbar(true);
+        } else {
+            win.show();
+            win.setSkipTaskbar(false);
+        }
     });
 })
 

@@ -1,6 +1,5 @@
 import { ipcMain, WebContents } from 'electron';
 import { spawn, ChildProcess, exec } from 'node:child_process';
-import readline from 'node:readline';
 import { promisify } from 'node:util';
 import pino from 'pino';
 
@@ -122,7 +121,7 @@ const parseUpgradableList = (output: string) => {
 // Listen for download requests from renderer process
 ipcMain.on('queue-install', async (event, download_json) => {
   const download = JSON.parse(download_json);
-  const { id, pkgname, upgradeOnly } = download || {};
+  const { id, pkgname } = download || {};
 
   if (!id || !pkgname) {
     logger.warn('passed arguments missing id or pkgname');
@@ -151,9 +150,9 @@ ipcMain.on('queue-install', async (event, download_json) => {
   const webContents = event.sender;
 
   // 开始组装安装命令
-  let superUserCmd = await checkSuperUserCommand();
+  const superUserCmd = await checkSuperUserCommand();
   let execCommand = '';
-  let execParams = [];
+  const execParams = [];
   if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
     execParams.push(SHELL_CALLER_PATH);
@@ -258,7 +257,7 @@ ipcMain.handle('check-installed', async (_event, pkgname: string) => {
 
   logger.info(`检查应用是否已安装: ${pkgname}`);
 
-  let child = spawn(SHELL_CALLER_PATH, ['apm', 'list', '--installed', pkgname], {
+  const child = spawn(SHELL_CALLER_PATH, ['apm', 'list', '--installed', pkgname], {
     shell: true,
     env: process.env
   });
@@ -291,16 +290,16 @@ ipcMain.on('remove-installed', async (_event, pkgname: string) => {
   }
   logger.info(`卸载已安装应用: ${pkgname}`);
   
-  let superUserCmd = await checkSuperUserCommand();
+  const superUserCmd = await checkSuperUserCommand();
   let execCommand = '';
-  let execParams = [];
+  const execParams = [];
   if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
     execParams.push(SHELL_CALLER_PATH);
   } else {
     execCommand = SHELL_CALLER_PATH;
   }
-  let child = spawn(execCommand, [...execParams, 'apm', 'remove', '-y', pkgname], {
+  const child = spawn(execCommand, [...execParams, 'apm', 'remove', '-y', pkgname], {
     shell: true,
     env: process.env
   });

@@ -1,2 +1,2 @@
 import { ref } from 'vue';
-export let isLoaded = ref(false);
+export const isLoaded = ref(false);

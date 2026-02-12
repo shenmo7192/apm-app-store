@@ -100,18 +100,6 @@ const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
 };
 
-const pauseDownload = (id: string) => {
-  // emit('pause', id);
-};
-
-const resumeDownload = (id: string) => {
-  // emit('resume', id);
-};
-
-const cancelDownload = (id: string) => {
-  // emit('cancel', id);
-};
-
 const retryDownload = (download: DownloadItem) => {
   emit('retry', download);
 };

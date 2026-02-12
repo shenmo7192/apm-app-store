@@ -7,7 +7,7 @@ import { currentApp, currentAppIsInstalled } from "../global/storeConfig";
 import { APM_STORE_BASE_URL } from "../global/storeConfig";
 import { downloads } from "../global/downloadStatus";
 
-import { InstallLog, DownloadItem, DownloadResult, App } from '../global/typedefinition';
+import { InstallLog, DownloadItem, DownloadResult, App, DownloadItemStatus } from '../global/typedefinition';
 
 let downloadIdCounter = 0;
 const logger = pino({ name: 'processInstall.ts' });
@@ -110,7 +110,7 @@ window.ipcRenderer.on('remove-complete', (_event, log: DownloadResult) => {
 
 window.ipcRenderer.on('install-status', (_event, log: InstallLog) => {
     const downloadObj = downloads.value.find(d => d.id === log.id);
-    if(downloadObj) downloadObj.status = log.message as any;
+    if(downloadObj) downloadObj.status = log.message as DownloadItemStatus;
 });
 window.ipcRenderer.on('install-log', (_event, log: InstallLog) => {
     const downloadObj = downloads.value.find(d => d.id === log.id);

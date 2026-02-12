@@ -7,7 +7,7 @@ import pino from "pino";
 
 const logger = pino({ 'name': 'deeplink.ts' });
 type Query = Record<string, string>;
-export type Listener = (query: Query) => any;
+export type Listener = (query: Query) => void;
 
 class ListenersMap {
   private map: Map<string, Set<Listener>> = new Map();
