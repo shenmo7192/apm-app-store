@@ -159,10 +159,9 @@ const onProgress = (_event: any, chunk: string) => {
   scrollToBottom();
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const onComplete = (
-  _event: any,
-  result: { success: boolean; message: any },
+  _event: unknown,
+  result: { success: boolean; message: unknown },
 ) => {
   if (!uninstalling.value) return; // Ignore if not current session
 

@@ -18,6 +18,7 @@
     <main class="flex-1 px-4 py-6 lg:px-10">
       <AppHeader
         :search-query="searchQuery"
+        :active-category="activeCategory"
         :apps-count="filteredApps.length"
         @update-search="handleSearchInput"
         @update="handleUpdate"
@@ -233,6 +234,7 @@ const toggleTheme = () => {
 
 const selectCategory = (category: string) => {
   activeCategory.value = category;
+  searchQuery.value = "";
 };
 
 const openDetail = (app: App) => {
