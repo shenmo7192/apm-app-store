@@ -125,6 +125,8 @@ if (tasks.size > 0) processNextInQueue(0);
 
 ## 📝 Type System Guidelines
 
+Important: DO NOT use any in the code!
+
 ### Core Types (src/global/typedefinition.ts)
 
 #### App Data Structure
@@ -816,6 +818,11 @@ See README.md for more details.
 3. **Test installation flow end-to-end**
 4. **Update comments and docs**
 
+### MUST DO
+
+1. Lint code 
+2. Format code
+3. Build vite project to check for errors.
 ---
 
 **Document Version:** 1.0  
