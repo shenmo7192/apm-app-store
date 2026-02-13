@@ -41,7 +41,7 @@ apm-app-store/
 │   │   ├── downloadStatus.ts    # Download queue management
 │   │   ├── storeConfig.ts       # API config and shared state
 │   │   └── typedefinition.ts    # TypeScript type definitions
-│   ├── modeuls/                 # Business logic modules
+│   ├── modules/                 # Business logic modules
 │   │   └── processInstall.ts    # Install/uninstall logic
 │   ├── assets/                  # CSS/images
 │   ├── App.vue                  # Root component
@@ -827,7 +827,7 @@ See README.md for more details.
 ---
 
 **Document Version:** 1.0  
-**Last Updated:** 2026-02-12  
+**Last Updated:** 2026-02-14  
 **Generated for:** AI Coding Agents working on elysia-best/apm-app-store
 
 ---
