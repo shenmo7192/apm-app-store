@@ -149,7 +149,7 @@ const logger = pino();
 // Axios 全局配置
 const axiosInstance = axios.create({
   baseURL: APM_STORE_BASE_URL,
-  timeout: 1000,
+  timeout: 5000, // 增加到 5 秒，避免网络波动导致的超时
 });
 
 // 响应式状态
@@ -599,48 +599,46 @@ const loadApps = async () => {
   loading.value = true;
   try {
     logger.info("开始加载应用数据...");
-    const promises = Object.keys(categories.value).map(async (category) => {
+
+    // 改为顺序加载，避免同时发送过多请求
+    for (const category of Object.keys(categories.value)) {
       try {
+        logger.info(`加载分类: ${category}`);
         const response = await axiosInstance.get<AppJson[]>(
           `/${window.apm_store.arch}/${category}/applist.json`,
         );
-        return response.status === 200 ? response.data : [];
-      } catch {
-        return [];
+
+        const categoryApps = response.status === 200 ? response.data : [];
+        categoryApps.forEach((appJson) => {
+          // Convert AppJson to App here
+          const normalizedApp: App = {
+            name: appJson.Name,
+            pkgname: appJson.Pkgname,
+            version: appJson.Version,
+            filename: appJson.Filename,
+            torrent_address: appJson.Torrent_address,
+            author: appJson.Author,
+            contributor: appJson.Contributor,
+            website: appJson.Website,
+            update: appJson.Update,
+            size: appJson.Size,
+            more: appJson.More,
+            tags: appJson.Tags,
+            img_urls:
+              typeof appJson.img_urls === "string"
+                ? JSON.parse(appJson.img_urls)
+                : appJson.img_urls,
+            icons: appJson.icons,
+            category: category,
+            currentStatus: "not-installed",
+          };
+          apps.value.push(normalizedApp);
+        });
+      } catch (error) {
+        logger.warn(`加载分类 ${category} 失败: ${error}`);
+        // 继续加载其他分类
       }
-    });
-
-    const results = await Promise.all(promises);
-
-    apps.value = [];
-    Object.keys(categories.value).forEach((category, index) => {
-      const categoryApps = Array.isArray(results[index]) ? results[index] : [];
-      categoryApps.forEach((appJson) => {
-        // Convert AppJson to App here
-        const normalizedApp: App = {
-          name: appJson.Name,
-          pkgname: appJson.Pkgname,
-          version: appJson.Version,
-          filename: appJson.Filename,
-          torrent_address: appJson.Torrent_address,
-          author: appJson.Author,
-          contributor: appJson.Contributor,
-          website: appJson.Website,
-          update: appJson.Update,
-          size: appJson.Size,
-          more: appJson.More,
-          tags: appJson.Tags,
-          img_urls:
-            typeof appJson.img_urls === "string"
-              ? JSON.parse(appJson.img_urls)
-              : appJson.img_urls,
-          icons: appJson.icons,
-          category: category,
-          currentStatus: "not-installed",
-        };
-        apps.value.push(normalizedApp);
-      });
-    });
+    }
   } catch (error) {
     logger.error(`加载应用数据失败: ${error}`);
   } finally {
