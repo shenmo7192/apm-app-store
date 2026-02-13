@@ -9,7 +9,7 @@
         :categories="categories"
         :active-category="activeCategory"
         :category-counts="categoryCounts"
-        :is-dark-theme="isDarkTheme"
+        :theme-mode="themeMode"
         @toggle-theme="toggleTheme"
         @select-category="selectCategory"
       />
@@ -153,7 +153,15 @@ const axiosInstance = axios.create({
 });
 
 // 响应式状态
-const isDarkTheme = ref(false);
+const themeMode = ref<"light" | "dark" | "auto">("auto");
+const systemIsDark = ref(
+  window.matchMedia("(prefers-color-scheme: dark)").matches,
+);
+const isDarkTheme = computed(() => {
+  if (themeMode.value === "auto") return systemIsDark.value;
+  return themeMode.value === "dark";
+});
+
 const categories: Ref<Record<string, string>> = ref({});
 const apps: Ref<App[]> = ref([]);
 const activeCategory = ref("all");
@@ -218,18 +226,39 @@ const hasSelectedUpgrades = computed(() => {
 });
 
 // 方法
-const syncThemePreference = (enabled: boolean) => {
-  document.documentElement.classList.toggle("dark", enabled);
+const syncThemePreference = () => {
+  document.documentElement.classList.toggle("dark", isDarkTheme.value);
 };
 
 const initTheme = () => {
   const savedTheme = localStorage.getItem("theme");
-  isDarkTheme.value = savedTheme === "dark";
-  syncThemePreference(isDarkTheme.value);
+  if (
+    savedTheme === "dark" ||
+    savedTheme === "light" ||
+    savedTheme === "auto"
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    themeMode.value = savedTheme as any;
+  } else {
+    themeMode.value = "auto";
+  }
+  window.ipcRenderer.send(
+    "set-theme-source",
+    themeMode.value === "auto" ? "system" : themeMode.value,
+  );
+  syncThemePreference();
+
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      systemIsDark.value = e.matches;
+    });
 };
 
 const toggleTheme = () => {
-  isDarkTheme.value = !isDarkTheme.value;
+  if (themeMode.value === "auto") themeMode.value = "light";
+  else if (themeMode.value === "light") themeMode.value = "dark";
+  else themeMode.value = "auto";
 };
 
 const selectCategory = (category: string) => {
@@ -736,8 +765,15 @@ onMounted(async () => {
 });
 
 // 观察器
-watch(isDarkTheme, (newVal) => {
-  localStorage.setItem("theme", newVal ? "dark" : "light");
-  syncThemePreference(newVal);
+watch(themeMode, (newVal) => {
+  localStorage.setItem("theme", newVal);
+  window.ipcRenderer.send(
+    "set-theme-source",
+    newVal === "auto" ? "system" : newVal,
+  );
+});
+
+watch(isDarkTheme, () => {
+  syncThemePreference();
 });
 </script>

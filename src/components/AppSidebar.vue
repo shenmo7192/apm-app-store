@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <ThemeToggle :is-dark="isDarkTheme" @toggle="toggleTheme" />
+    <ThemeToggle :theme-mode="themeMode" @toggle="toggleTheme" />
 
     <div class="flex-1 space-y-2 overflow-y-auto scrollbar-muted pr-2">
       <button
@@ -72,7 +72,7 @@ defineProps<{
   categories: Record<string, any>;
   activeCategory: string;
   categoryCounts: Record<string, number>;
-  isDarkTheme: boolean;
+  themeMode: "light" | "dark" | "auto";
 }>();
 
 const emit = defineEmits<{

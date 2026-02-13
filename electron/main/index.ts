@@ -1,4 +1,12 @@
-import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  shell,
+  Tray,
+  nativeTheme,
+} from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
@@ -114,6 +122,10 @@ ipcMain.on("renderer-ready", (event, args) => {
   );
   isLoaded.value = args.status;
   logger.info(`isLoaded set to: ${isLoaded.value}`);
+});
+
+ipcMain.on("set-theme-source", (event, theme: "system" | "light" | "dark") => {
+  nativeTheme.themeSource = theme;
 });
 
 app.whenReady().then(() => {
