@@ -1,7 +1,3 @@
-# [1.1.0-beta.1](https://github.com/elysia-best/apm-app-store/compare/v1.1.0...v1.1.0-beta.1) (2026-02-14)
-
-
-
 # [1.1.0](https://github.com/elysia-best/apm-app-store/compare/v1.1.0-beta.1...v1.1.0) (2026-02-14)
 
 
