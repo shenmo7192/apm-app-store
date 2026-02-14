@@ -533,7 +533,7 @@ const uninstallInstalledApp = (app: App) => {
   requestUninstall(app);
 };
 
-// 目前 APM 商店不能暂停下载（因为 APM 本身不支持），但保留这些方法以备将来使用
+// TODO: 目前 APM 商店不能暂停下载
 const pauseDownload = (id: DownloadItem) => {
   const download = downloads.value.find((d) => d.id === id.id);
   if (download && download.status === "installing") {
@@ -546,7 +546,7 @@ const pauseDownload = (id: DownloadItem) => {
   }
 };
 
-// 同理
+// TODO: 同理，暂未实现
 const resumeDownload = (id: DownloadItem) => {
   const download = downloads.value.find((d) => d.id === id.id);
   if (download && download.status === "paused") {
@@ -559,7 +559,6 @@ const resumeDownload = (id: DownloadItem) => {
   }
 };
 
-// 同理
 const cancelDownload = (id: DownloadItem) => {
   const index = downloads.value.findIndex((d) => d.id === id.id);
   if (index !== -1) {
@@ -567,19 +566,15 @@ const cancelDownload = (id: DownloadItem) => {
     // 发送到主进程取消
     window.ipcRenderer.send("cancel-install", download.id);
 
-    download.status = "failed"; // Use 'failed' or add 'cancelled' to type if needed. User asked to keep type simple.
+    download.status = "failed"; // TODO: Use 'cancelled'instead of failed to type will be better though
     download.logs.push({
       time: Date.now(),
       message: "下载已取消",
     });
-    // 延迟删除，让用户看到取消状态
-    setTimeout(() => {
-      logger.info(`删除下载: ${download.pkgname}`);
-      // Remove from list only if it's still failed (user didn't retry immediately)
-      // Check index again
-      const idx = downloads.value.findIndex((d) => d.id === id.id);
-      if (idx !== -1) downloads.value.splice(idx, 1);
-    }, 1000);
+    // TODO: Remove from the list，but is it really necessary?
+    // Maybe keep it with 'cancelled' status for user reference
+    const idx = downloads.value.findIndex((d) => d.id === id.id);
+    if (idx !== -1) downloads.value.splice(idx, 1);
   }
 };
 
