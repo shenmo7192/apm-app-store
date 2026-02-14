@@ -46,6 +46,7 @@ deb:
     - "apm"
     - "xdg-utils"
     - "shared-mime-info"
+    - "aria2"
 rpm:
   afterInstall: "scripts/postinst.sh"
   afterRemove: "scripts/postrm.sh"
@@ -62,3 +63,4 @@ rpm:
     - "amber-package-manager"
     - "xdg-utils"
     - "shared-mime-info"
+    - "aria2"
