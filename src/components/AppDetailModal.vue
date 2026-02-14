@@ -37,6 +37,7 @@
               </div>
               <p class="text-sm text-slate-500 dark:text-slate-400">
                 {{ app?.pkgname || "" }} · {{ app?.version || "" }}
+                <span v-if="downloadCount"> · 下载量：{{ downloadCount }}</span>
               </p>
             </div>
           </div>
@@ -199,7 +200,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue";
+import { computed, useAttrs, ref, watch } from "vue";
+import axios from "axios";
 import {
   useDownloadItemStatus,
   useInstallFeedback,
@@ -254,6 +256,31 @@ const iconPath = computed(() => {
   if (!props.app) return "";
   return `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${props.app.category}/${props.app.pkgname}/icon.png`;
 });
+
+const downloadCount = ref<string>("");
+
+// 监听 app 变化，获取新app的下载量
+watch(
+  () => props.app,
+  async (newApp) => {
+    if (newApp) {
+      downloadCount.value = "";
+      try {
+        const url = `${APM_STORE_BASE_URL}/${window.apm_store.arch}/${newApp.category}/${newApp.pkgname}/download-times.txt`;
+        const resp = await axios.get(url, { responseType: "text" });
+        if (resp.status === 200) {
+          downloadCount.value = String(resp.data).trim();
+        } else {
+          downloadCount.value = "N/A";
+          throw new Error(`Unexpected response status: ${resp.status}`);
+        }
+      } catch (e) {
+        console.error("Failed to fetch download count", e);
+      }
+    }
+  },
+  { immediate: true },
+);
 
 const closeModal = () => {
   emit("close");

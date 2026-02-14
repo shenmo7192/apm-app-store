@@ -6,7 +6,7 @@ import {
   shell,
   Tray,
   nativeTheme,
-  session
+  session,
 } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -62,7 +62,7 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
-const userAgent = `APM-Store/${JSON.stringify(process.env.npm_package_version)}`
+const userAgent = `APM-Store/${JSON.stringify(process.env.npm_package_version)}`;
 
 async function createWindow() {
   win = new BrowserWindow({

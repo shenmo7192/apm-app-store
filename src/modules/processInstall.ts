@@ -74,7 +74,7 @@ export const handleInstall = () => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     )
     .then((response) => {
       logger.info("下载次数统计已发送，状态:", response.data);
@@ -146,7 +146,7 @@ window.ipcRenderer.on(
     if (downloadObj) {
       downloadObj.progress = payload.progress;
     }
-  }
+  },
 );
 
 window.ipcRenderer.on("install-log", (_event, log: InstallLog) => {
