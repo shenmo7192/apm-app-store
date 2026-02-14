@@ -15,6 +15,9 @@
 </div>
 
 ---
+<div align="center">
+<img src="./galleries/image.png" alt="APM Screenshot" width="90%"  />
+</div>
 
 ## 📦 关于 APM
 
