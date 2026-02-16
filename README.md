@@ -9,7 +9,7 @@
 基于 Electron + Vue 3 + Vite 构建的现代化应用商店客户端
 
 [![GitHub Build](https://github.com/elysia-best/apm-app-store/actions/workflows/build.yml/badge.svg)](https://github.com/elysia-best/apm-app-store/actions/workflows/build.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-MulanPSL%202.0-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange)](https://github.com/elysia-best/apm-app-store)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/elysia-best/apm-app-store)
 
