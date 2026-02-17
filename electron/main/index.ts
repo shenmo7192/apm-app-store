@@ -62,7 +62,17 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
-const userAgent = `APM-Store/${JSON.stringify(process.env.npm_package_version)}`;
+
+// Use app.getVersion() when the app is packaged. 
+const getUserAgent = (): string => {
+  const version = app && app.isPackaged
+    ? app.getVersion()
+    : process.env.npm_package_version || "dev";
+  return `APM-Store/${version}`;
+};
+
+logger.info("User Agent: " + getUserAgent());
+
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -133,7 +143,7 @@ ipcMain.on("set-theme-source", (event, theme: "system" | "light" | "dark") => {
 app.whenReady().then(() => {
   // Set User-Agent for client
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    details.requestHeaders["User-Agent"] = userAgent;
+    details.requestHeaders["User-Agent"] = getUserAgent();
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
   createWindow();
