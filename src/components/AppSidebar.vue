@@ -10,10 +10,10 @@
         <div class="flex flex-col">
           <span
             class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400"
-            >APM Store</span
+            >Spark Store</span
           >
           <span class="text-lg font-semibold text-slate-900 dark:text-white"
-            >APM 客户端商店</span
+            >星火应用商店</span
           >
         </div>
       </div>

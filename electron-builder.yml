@@ -1,7 +1,7 @@
 appId: "store.spark-app.apm"
 asar: true
-productName: "apm-store"
-artifactName: "apm-store_${version}_${os}_${arch}.${ext}"
+productName: "spark-store"
+artifactName: "spark-store_${version}_${os}_${arch}.${ext}"
 directories:
   output: "release/${version}"
 files:
@@ -17,15 +17,15 @@ extraResources:
 linux:
   icon: "icons/amber-pm-logo.icns"
   category: "System"
-  executableName: "apm-store"
+  executableName: "spark-store"
   desktop:
     entry:
-      Name: "APM Store"
-      Name[zh_CN]: "APM 琥珀应用商店"
+      Name: "Spark Store"
+      Name[zh_CN]: "星火应用商店"
       Type: "Application"
       Categories: "System;"
   mimeTypes:
-    - "x-scheme-handler/apmstore"
+    - "x-scheme-handler/spk"
   target:
     - "AppImage"
     - "deb"
@@ -43,7 +43,6 @@ deb:
     - "libatspi2.0-0"
     - "libuuid1"
     - "libsecret-1-0"
-    - "apm"
     - "xdg-utils"
     - "shared-mime-info"
     - "aria2"

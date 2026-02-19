@@ -1,10 +1,10 @@
 {
-  "name": "apm-store",
+  "name": "spark-store",
   "version": "1.1.1",
   "main": "dist-electron/main/index.js",
   "description": "Client for APM App Store",
   "author": "elysia-best <elysia-best@simplelinux.cn.eu.org>",
-  "license": "MulanPSL-2.0",
+  "license": "GPL-2.0",
   "private": true,
   "keywords": [
     "electron",
