@@ -1,0 +1,164 @@
+#!/bin/bash
+
+# ===== ACE环境配置 =====
+readonly ACE_ENVIRONMENTS=(
+    "bookworm-run:amber-ce-bookworm"
+    "trixie-run:amber-ce-trixie"
+    "deepin23-run:amber-ce-deepin23"
+    "sid-run:amber-ce-sid"
+)
+
+# ===== 日志和函数 =====
+[ -f /opt/durapps/spark-store/bin/bashimport/log.amber ] && \
+    source /opt/durapps/spark-store/bin/bashimport/log.amber || {
+    log.info() { echo "INFO: $*"; }
+    log.warn() { echo "WARN: $*"; }
+    log.error() { echo "ERROR: $*"; }
+    log.debug() { echo "DEBUG: $*"; }
+}
+
+# ===== 功能函数 =====
+function scan_desktop_file_log() {
+    unset desktop_file_path
+    local package_name=$1
+    # 标准desktop文件检测
+    while IFS= read -r path; do
+        [ -z "$(grep 'NoDisplay=true' "$path")" ] && {
+            log.info "Found valid desktop file: $path"
+            export desktop_file_path="$path"
+            return 0
+        }
+    done < <(dpkg -L "$package_name" 2>/dev/null | grep -E '/usr/share/applications/.*\.desktop$|/opt/apps/.*/entries/applications/.*\.desktop$')
+
+    # 深度环境特殊处理
+    while IFS= read -r path; do
+        [ -z "$(grep 'NoDisplay=true' "$path")" ] && {
+            log.info "Found deepin desktop file: $path"
+            export desktop_file_path="$path"
+            return 0
+        }
+    done < <(find /opt/apps/$package_name -path '*/entries/applications/*.desktop' 2>/dev/null)
+    return 1
+}
+
+function scan_desktop_file() {
+    local package_name=$1 result=""
+    # 标准结果收集
+    while IFS= read -r path; do
+        [ -z "$(grep 'NoDisplay=true' "$path")" ] && result+="$path,"
+    done < <(dpkg -L "$package_name" 2>/dev/null | grep -E '/usr/share/applications/.*\.desktop$|/opt/apps/.*/entries/applications/.*\.desktop$')
+    
+    # 深度环境补充扫描
+    while IFS= read -r path; do
+        [ -z "$(grep 'NoDisplay=true' "$path")" ] && result+="$path,"
+    done < <(find /opt/apps/$package_name -path '*/entries/applications/*.desktop' 2>/dev/null)
+    
+    echo "${result%,}"
+}
+
+function launch_app() {
+    local DESKTOP_FILE_PATH="${1#file://}"
+    # 提取并净化Exec命令
+    exec_command=$(grep -m1 '^Exec=' "$DESKTOP_FILE_PATH" | cut -d= -f2- | sed 's/%.//g')
+    [ -z "$exec_command" ] && return 1
+    [ ! -z "$IS_ACE_ENV" ] && HOST_PREFIX="host-spawn"
+    exec_command="${HOST_PREFIX} $exec_command"
+    log.info "Launching: $exec_command"
+    ${SHELL:-bash} -c " $exec_command"  &
+
+}
+
+# 导出函数以便在ACE环境中使用
+export -f launch_app scan_desktop_file scan_desktop_file_log log.info log.warn log.debug log.error
+
+# ===== ACE环境执行器 =====
+function ace_runner() {
+    local action=$1
+    local target=$2
+    
+    for ace_entry in "${ACE_ENVIRONMENTS[@]}"; do
+        local ace_cmd=${ace_entry%%:*}
+        local ace_env=${ace_entry#*:}
+        
+        if ! command -v "$ace_cmd" >/dev/null; then
+            log.debug "$ace_cmd not found, skipping..."
+            continue
+        fi
+        
+        log.info "Attempting in $ace_env environment..."
+        
+        case "$action" in
+        check)
+            if "$ace_cmd" scan_desktop_file_log "$target"; then
+                log.info "Found desktop file in $ace_env"
+                return 0
+            fi
+            ;;
+        list)
+            local result
+            if result=$("$ace_cmd"  scan_desktop_file "$target"); then
+                echo "$result"
+                return 0
+            fi
+            ;;
+        launch|start)
+"$ace_cmd"  scan_desktop_file_log "$target"
+            if desktop_path=$("$ace_cmd"  scan_desktop_file_log "$target"); then
+                log.info "Launching from $ace_env..."
+                "$ace_cmd"  launch_app $("$ace_cmd"  scan_desktop_file "$target")
+                return 0
+            fi
+            ;;
+        esac
+        
+        log.debug "Attempt in $ace_env failed"
+    done
+    
+    return 1
+}
+
+# ===== 主逻辑 =====
+[ $# -lt 2 ] && {
+    log.error "Usage: $0 {check|launch|list|start} package_name/desktop_file"
+    exit 1
+}
+
+case $1 in
+check)
+    # 当前环境检查
+    if scan_desktop_file_log "$2"; then
+        exit 0
+    else
+        # 非ACE环境下执行ACE环境扫描
+        [ -z "$IS_ACE_ENV" ] && ace_runner check "$2"
+        exit $?
+    fi
+    ;;
+
+list)
+    # 当前环境列表
+    if result=$(scan_desktop_file "$2"); then
+        echo "$result"
+        exit 0
+    else
+        # 非ACE环境下执行ACE环境扫描
+        [ -z "$IS_ACE_ENV" ] && ace_runner list "$2"
+        exit $?
+    fi
+    ;;
+
+launch|start)
+    # 当前环境启动
+    if scan_desktop_file_log "$2" && launch_app "$desktop_file_path"; then
+        exit 0
+    else
+        # 非ACE环境下通过ACE环境启动
+        [ -z "$IS_ACE_ENV" ] && ace_runner launch "$2"
+        exit $?
+    fi
+    ;;
+*)
+    log.error "Invalid command: $1"
+    exit 2
+    ;;
+esac

@@ -89,7 +89,7 @@
           </div>
         </div>
 
-        <div
+        <!-- <div
           class="mt-4 rounded-2xl border border-slate-200/60 bg-slate-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-300"
         >
           首次安装 APM 后需要重启系统以在启动器中看到应用入口。可前往
@@ -100,7 +100,7 @@
             >APM Releases</a
           >
           获取 APM。
-        </div>
+        </div> -->
 
         <div v-if="screenshots.length" class="mt-6 grid gap-3 sm:grid-cols-2">
           <img

@@ -180,7 +180,7 @@ ipcMain.on("queue-install", async (event, download_json) => {
   }
 
   if (metalinkUrl && filename) {
-    execParams.push("aptss", "ssaudit", `${downloadDir}/${filename}`);
+    execParams.push("ssinstall", `${downloadDir}/${filename}` , "--delete-after-install");
   } else {
     execParams.push("aptss", "install", "-y", pkgname);
   }
@@ -395,36 +395,34 @@ ipcMain.handle("check-installed", async (_event, pkgname: string) => {
     logger.warn("check-installed missing pkgname");
     return false;
   }
-  let isInstalled = false;
 
   logger.info(`检查应用是否已安装: ${pkgname}`);
 
-  const child = spawn(
-    SHELL_CALLER_PATH,
-    ["aptss", "list", "--installed", pkgname],
-    {
-      shell: true,
-      env: process.env,
-    },
-  );
+  const checkScript = "/opt/spark-store/extras/check-is-installed";
+  let isInstalled = false;
 
-  let output = "";
-
-  child.stdout.on("data", (data) => {
-    output += data.toString();
+  const child = spawn(checkScript, [pkgname], {
+    shell: false,
+    env: process.env,
   });
 
   await new Promise<void>((resolve) => {
+    child.on("error", (err) => {
+      logger.error(`check-installed 执行失败: ${err?.message || err}`);
+      resolve();
+    });
+
     child.on("close", (code) => {
-      if (code === 0 && output.includes(pkgname)) {
+      if (code === 0) {
         isInstalled = true;
         logger.info(`应用已安装: ${pkgname}`);
       } else {
-        logger.info(`应用未安装: ${pkgname}`);
+        logger.info(`应用未安装: ${pkgname} (exit ${code})`);
       }
       resolve();
     });
   });
+
   return isInstalled;
 });
 
@@ -447,7 +445,7 @@ ipcMain.on("remove-installed", async (_event, pkgname: string) => {
   }
   const child = spawn(
     execCommand,
-    [...execParams, "aptss", "remove", "-y", pkgname],
+    [...execParams, "aptss", "remove", pkgname ],
     {
       shell: true,
       env: process.env,
@@ -571,7 +569,7 @@ ipcMain.handle("launch-app", async (_event, pkgname: string) => {
   }
 
   const execCommand = "/opt/spark-store/extras/host-spawn";
-  const execParams = ["/opt/spark-store/extras/apm-launcher", "launch", pkgname];
+  const execParams = ["/opt/spark-store/extras/app-launcher", "launch", pkgname];
 
   logger.info(
     `Launching app: ${pkgname} with command: ${execCommand} ${execParams.join(" ")}`,
