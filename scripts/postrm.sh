@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-rm -fv /usr/share/polkit-1/actions/store.spark-app.amber-pm-store.policy
+rm -fv /usr/share/polkit-1/actions/store.spark-app.spark-store.policy
