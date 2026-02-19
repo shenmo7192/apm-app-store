@@ -140,6 +140,26 @@ ipcMain.on("set-theme-source", (event, theme: "system" | "light" | "dark") => {
   nativeTheme.themeSource = theme;
 });
 
+// 启动系统更新工具（使用 pkexec 提升权限）
+ipcMain.handle("run-update-tool", async () => {
+  try {
+    const { spawn } = await import("node:child_process");
+    const pkexecPath = "/usr/bin/pkexec";
+    const args = ["spark-update-tool"];
+    const child = spawn(pkexecPath, args, {
+      detached: true,
+      stdio: "ignore",
+    });
+    // 让子进程在后台运行且不影响主进程退出
+    child.unref();
+    logger.info("Launched pkexec spark-update-tool");
+    return { success: true };
+  } catch (err) {
+    logger.error({ err }, "Failed to launch spark-update-tool");
+    return { success: false, message: (err as Error)?.message || String(err) };
+  }
+});
+
 app.whenReady().then(() => {
   // Set User-Agent for client
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {

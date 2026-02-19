@@ -346,8 +346,15 @@ const nextScreen = () => {
   }
 };
 
-const handleUpdate = () => {
-  openUpdateModal();
+const handleUpdate = async () => {
+  try {
+    const result = await window.ipcRenderer.invoke("run-update-tool");
+    if (!result || !result.success) {
+      logger.warn(`启动更新工具失败: ${result?.message || "未知错误"}`);
+    }
+  } catch (error) {
+    logger.error(`调用更新工具时出错: ${error}`);
+  }
 };
 
 const handleList = () => {
@@ -639,54 +646,58 @@ const loadCategories = async () => {
   }
 };
 
-const loadApps = async () => {
-  loading.value = true;
+const loadApps = async (onFirstBatch?: () => void) => {
   try {
-    logger.info("开始加载应用数据...");
+    logger.info("开始加载应用数据（并发分批）...");
 
-    // 改为顺序加载，避免同时发送过多请求
-    for (const category of Object.keys(categories.value)) {
-      try {
-        logger.info(`加载分类: ${category}`);
-        const response = await axiosInstance.get<AppJson[]>(
-          cacheBuster(`/${window.apm_store.arch}/${category}/applist.json`),
-        );
+    const categoriesList = Object.keys(categories.value || {});
+    const concurrency = 4; // 同时并发请求数量，可根据网络条件调整
 
-        const categoryApps = response.status === 200 ? response.data : [];
-        categoryApps.forEach((appJson) => {
-          // Convert AppJson to App here
-          const normalizedApp: App = {
-            name: appJson.Name,
-            pkgname: appJson.Pkgname,
-            version: appJson.Version,
-            filename: appJson.Filename,
-            torrent_address: appJson.Torrent_address,
-            author: appJson.Author,
-            contributor: appJson.Contributor,
-            website: appJson.Website,
-            update: appJson.Update,
-            size: appJson.Size,
-            more: appJson.More,
-            tags: appJson.Tags,
-            img_urls:
-              typeof appJson.img_urls === "string"
-                ? JSON.parse(appJson.img_urls)
-                : appJson.img_urls,
-            icons: appJson.icons,
-            category: category,
-            currentStatus: "not-installed",
-          };
-          apps.value.push(normalizedApp);
-        });
-      } catch (error) {
-        logger.warn(`加载分类 ${category} 失败: ${error}`);
-        // 继续加载其他分类
-      }
+    for (let i = 0; i < categoriesList.length; i += concurrency) {
+      const batch = categoriesList.slice(i, i + concurrency);
+      await Promise.all(
+        batch.map(async (category) => {
+          try {
+            logger.info(`加载分类: ${category}`);
+            const response = await axiosInstance.get<AppJson[]>(
+              cacheBuster(`/${window.apm_store.arch}/${category}/applist.json`),
+            );
+            const categoryApps = response.status === 200 ? response.data : [];
+            categoryApps.forEach((appJson) => {
+              const normalizedApp: App = {
+                name: appJson.Name,
+                pkgname: appJson.Pkgname,
+                version: appJson.Version,
+                filename: appJson.Filename,
+                torrent_address: appJson.Torrent_address,
+                author: appJson.Author,
+                contributor: appJson.Contributor,
+                website: appJson.Website,
+                update: appJson.Update,
+                size: appJson.Size,
+                more: appJson.More,
+                tags: appJson.Tags,
+                img_urls:
+                  typeof appJson.img_urls === "string"
+                    ? JSON.parse(appJson.img_urls)
+                    : appJson.img_urls,
+                icons: appJson.icons,
+                category: category,
+                currentStatus: "not-installed",
+              };
+              apps.value.push(normalizedApp);
+            });
+          } catch (error) {
+            logger.warn(`加载分类 ${category} 失败: ${error}`);
+          }
+        }),
+      );
+
+      // 首批完成回调（用于隐藏首屏 loading）
+      if (i === 0 && typeof onFirstBatch === "function") onFirstBatch();
     }
   } catch (error) {
     logger.error(`加载应用数据失败: ${error}`);
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -699,7 +710,12 @@ onMounted(async () => {
   initTheme();
 
   await loadCategories();
-  await loadApps();
+  // 先显示 loading，并异步开始分批加载应用列表。
+  loading.value = true;
+  loadApps(() => {
+    // 当第一批分类加载完成后，隐藏首屏 loading
+    loading.value = false;
+  });
 
   // 设置键盘导航
   document.addEventListener("keydown", (e) => {

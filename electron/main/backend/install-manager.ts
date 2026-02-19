@@ -138,7 +138,7 @@ const parseUpgradableList = (output: string) => {
 // Listen for download requests from renderer process
 ipcMain.on("queue-install", async (event, download_json) => {
   const download = JSON.parse(download_json);
-  const { id, pkgname, metalinkUrl, filename } = download || {};
+  const { id, pkgname, metalinkUrl, filename, upgradeOnly } = download || {};
 
   if (!id || !pkgname) {
     logger.warn("passed arguments missing id or pkgname");
@@ -172,17 +172,28 @@ ipcMain.on("queue-install", async (event, download_json) => {
   const execParams = [];
   const downloadDir = `/tmp/spark-store/download/${pkgname}`;
 
-  if (superUserCmd.length > 0) {
+  // 升级操作：使用 spark-update-tool
+  if (upgradeOnly) {
+    execCommand = "pkexec";
+    execParams.push("spark-update-tool", pkgname);
+    logger.info(`升级模式: 使用 spark-update-tool 升级 ${pkgname}`);
+  } else if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
     execParams.push(SHELL_CALLER_PATH);
+
+    if (metalinkUrl && filename) {
+      execParams.push("ssinstall", `${downloadDir}/${filename}`, "--delete-after-install");
+    } else {
+      execParams.push("aptss", "install", "-y", pkgname);
+    }
   } else {
     execCommand = SHELL_CALLER_PATH;
-  }
 
-  if (metalinkUrl && filename) {
-    execParams.push("ssinstall", `${downloadDir}/${filename}` , "--delete-after-install");
-  } else {
-    execParams.push("aptss", "install", "-y", pkgname);
+    if (metalinkUrl && filename) {
+      execParams.push("ssinstall", `${downloadDir}/${filename}`, "--delete-after-install");
+    } else {
+      execParams.push("aptss", "install", "-y", pkgname);
+    }
   }
 
   const task: InstallTask = {
