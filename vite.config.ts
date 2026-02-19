@@ -77,10 +77,10 @@ export default defineConfig(({ command }) => {
           host: url.hostname,
           port: +url.port,
           proxy: {
-            "/local_amd64-apm": {
+            "/local_amd64-store": {
               target: "https://erotica.spark-app.store",
               changeOrigin: true,
-              rewrite: (path) => path.replace(/^\/local_amd64-apm/, ""),
+              rewrite: (path) => path.replace(/^\/local_amd64-store/, ""),
             },
             "/local_stats": {
               target: "https://feedback.spark-app.store",
@@ -92,10 +92,10 @@ export default defineConfig(({ command }) => {
       } else {
         return {
           proxy: {
-            "/local_amd64-apm": {
+            "/local_amd64-store": {
               target: "https://erotica.spark-app.store",
               changeOrigin: true,
-              rewrite: (path) => path.replace(/^\/local_amd64-apm/, ""),
+              rewrite: (path) => path.replace(/^\/local_amd64-store/, ""),
             },
             "/local_stats": {
               target: "https://feedback.spark-app.store",

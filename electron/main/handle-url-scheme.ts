@@ -80,3 +80,28 @@ deepLink.on("install", (query) => {
     pendingActions.push(action);
   }
 });
+
+deepLink.on("search", (query) => {
+  logger.info(
+    `Deep link: event "search" fired with query: ${JSON.stringify(query)}`,
+  );
+
+  const action = () => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) return;
+
+    if (query.pkgname) {
+      win.webContents.send("deep-link-search", { pkgname: query.pkgname });
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  };
+
+  logger.info(`isLoaded: ${isLoaded.value}`);
+
+  if (isLoaded.value) {
+    action();
+  } else {
+    pendingActions.push(action);
+  }
+});

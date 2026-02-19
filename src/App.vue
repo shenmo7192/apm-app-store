@@ -782,6 +782,13 @@ onMounted(async () => {
   );
 
   window.ipcRenderer.on(
+    "deep-link-search",
+    (_event: IpcRendererEvent, data: { pkgname: string }) => {
+      searchQuery.value = data.pkgname;
+    },
+  );
+
+  window.ipcRenderer.on(
     "remove-complete",
     (_event: IpcRendererEvent, payload: ChannelPayload) => {
       const pkgname = currentApp.value?.pkgname;

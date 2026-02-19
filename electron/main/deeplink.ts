@@ -45,7 +45,7 @@ class ListenersMap {
   }
 }
 
-const protocols = ["apmstore"];
+const protocols = ["spk"];
 const listeners = new ListenersMap();
 
 export const deepLink = {
@@ -81,17 +81,27 @@ export function handleCommandLine(commandLine: string[]) {
   try {
     const url = new URL(target);
 
-    const action = url.hostname;
+    const action = url.hostname; // 'search'
     logger.info(`Deep link: action found: ${action}`);
 
     const query: Query = {};
-    url.searchParams.forEach((value, key) => {
-      query[key] = value;
-    });
-    logger.info(`Deep link: query found: ${JSON.stringify(query)}`);
 
-    const emitCount = listeners.emit(action, query);
-    logger.info(`Deep link: emitted for ${emitCount} listeners`);
+    if (action === "search") {
+      // Format: spk://search/pkgname
+      // url.pathname will be '/pkgname'
+      const pkgname = url.pathname.split("/").filter(Boolean)[0];
+      if (pkgname) {
+        query.pkgname = pkgname;
+        logger.info(`Deep link: search query found: ${JSON.stringify(query)}`);
+        listeners.emit(action, query);
+      } else {
+        logger.warn(
+          `Deep link: invalid search format, expected /pkgname, got ${url.pathname}`,
+        );
+      }
+    } else {
+      logger.warn(`Deep link: unknown action ${action}`);
+    }
   } catch (error) {
     logger.error(`Deep link: error parsing URL: ${error}`);
   }

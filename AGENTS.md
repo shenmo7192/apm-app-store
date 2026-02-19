@@ -90,7 +90,7 @@ event.sender.send('install-complete', { id, success, ... });
 
 **Exposed APIs in Preload:**
 - `window.ipcRenderer.on/off/send/invoke` - IPC communication
-- `window.apm_store.arch` - System architecture detection (amd64-apm, arm64-apm)
+- `window.apm_store.arch` - System architecture detection (amd64-store, arm64-store)
 
 ### 3. Installation Queue System
 
@@ -345,10 +345,10 @@ const response = await axiosInstance.get<AppJson[]>(
 ```typescript
 server: {
   proxy: {
-    '/local_amd64-apm': {
+    '/local_amd64-store': {
       target: 'https://erotica.spark-app.store',
       changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/local_amd64-apm/, ''),
+      rewrite: (path) => path.replace(/^\/local_amd64-store/, ''),
     }
   }
 }
@@ -356,36 +356,54 @@ server: {
 
 ---
 
-## 🎯 Deep Link Protocol
+## 🎯 Deep Link Protocol (SPK URI Scheme)
 
-**URL Scheme:** `apmstore://`
+**URL Scheme:** `spk://`
 
-### Supported Actions
+### Supported SPK URI Format
 
-1. **Install App:** `apmstore://install?pkg=<pkgname>`
-2. **Show Updates:** `apmstore://update`
-3. **Show Installed:** `apmstore://installed`
+Format: `spk://search/{pkgname}`
+
+**Examples:**
+- `spk://search/code` - Search for and open "code" app
+- `spk://search/steam` - Search for and open "steam" app  
+- `spk://search/store.spark-app.hmcl` - Search for and open "HMCL" game
 
 ### Implementation Pattern
 
 ```typescript
-// electron/main/deeplink.ts - Parse command line
-export function handleCommandLine(argv: string[]) {
-  const deeplinkUrl = argv.find((arg) => arg.startsWith('apmstore://'));
+// electron/main/deeplink.ts - Parse command line and route
+export function handleCommandLine(commandLine: string[]) {
+  const deeplinkUrl = commandLine.find((arg) =>
+    arg.startsWith('spk://')
+  );
   if (!deeplinkUrl) return;
-  
-  const url = new URL(deeplinkUrl);
-  if (url.hostname === 'install') {
-    const pkg = url.searchParams.get('pkg');
-    sendToRenderer('deep-link-install', pkg);
+
+  try {
+    const url = new URL(deeplinkUrl);
+    const action = url.hostname; // 'search'
+
+    if (action === 'search') {
+      // Format: spk://search/pkgname
+      // url.pathname will be '/pkgname'
+      const pkgname = url.pathname.split('/').filter(Boolean)[0];
+      if (pkgname) {
+        listeners.emit('search', { pkgname });
+      }
+    }
+  } catch (error) {
+    logger.error({ err: error }, 'Error parsing SPK URI');
   }
 }
 
 // src/App.vue - Handle in renderer
-window.ipcRenderer.on('deep-link-install', (_event, pkgname: string) => {
-  const target = apps.value.find((a) => a.pkgname === pkgname);
-  if (target) openDetail(target);
-});
+window.ipcRenderer.on(
+  'deep-link-search',
+  (_event: IpcRendererEvent, data: { pkgname: string }) => {
+    // Trigger search with the pkgname
+    searchQuery.value = data.pkgname;
+  }
+);
 ```
 
 ---
