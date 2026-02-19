@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import ThemeToggle from "./ThemeToggle.vue";
-import amberLogo from "../assets/imgs/amber-pm-logo.png";
+import amberLogo from "../assets/imgs/spark-store.svg";
 
 defineProps<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

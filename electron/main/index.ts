@@ -204,7 +204,7 @@ app.on("will-quit", () => {
 function getIconPath() {
   let iconPath = "";
   const iconFile =
-    process.platform === "win32" ? "amber-pm-logo.ico" : "amber-pm-logo.png"; // 图标文件名，linux下需要png格式，不然会不显示
+    process.platform === "win32" ? "amber-pm-logo.ico" : "spark-store.svg"; // 图标文件名，linux下需要png格式，不然会不显示
   // 判断是否在打包模式
   if (app.isPackaged) {
     // 打包模式
