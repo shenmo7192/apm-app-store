@@ -5,7 +5,7 @@ readonly ACE_ENVIRONMENTS=(
     "deepin23-run:amber-ce-deepin23"
     "sid-run:amber-ce-sid"
 )
-dpkg -s "$1" > /dev/null 2>&1
+dpkg -s '$1' 2>/dev/null | grep -q 'Status: install ok installed' > /dev/null 2>&1
 RET="$?"
 if [[ "$RET" != "0" ]] && [[ "$IS_ACE_ENV" == "" ]];then ## 如果未在ACE环境中
 
@@ -18,7 +18,7 @@ if [[ "$RET" != "0" ]] && [[ "$IS_ACE_ENV" == "" ]];then ## 如果未在ACE环�
             
             # 在ACE环境中使用dpkg -s检查安装状态
             # 使用dpkg -s并检查输出中是否包含"Status: install ok installed"
-            $ace_cmd bash -c "dpkg -s '$1' 2>/dev/null | grep -q 'Status: install ok installed'"
+            $ace_cmd dpkg -s "$1" 2>/dev/null | grep -q 'Status: install ok installed'
             try_run_ret="$?"
             
             # 最终检测结果处理
