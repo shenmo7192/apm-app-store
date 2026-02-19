@@ -69,14 +69,14 @@ const getUserAgent = (): string => {
     app && app.isPackaged
       ? app.getVersion()
       : process.env.npm_package_version || "dev";
-  return `APM-Store/${version}`;
+  return `Spark-Store/${version}`;
 };
 
 logger.info("User Agent: " + getUserAgent());
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: "APM AppStore",
+    title: "星火应用商店",
     width: 1366,
     height: 768,
     autoHideMenuBar: true,
@@ -175,7 +175,7 @@ app.on("activate", () => {
 app.on("will-quit", () => {
   // Clean up temp dir
   logger.info("Cleaning up temp dir");
-  fs.rmSync("/tmp/apm-store/", { recursive: true, force: true });
+  fs.rmSync("/tmp/spark-store/", { recursive: true, force: true });
   logger.info("Done, exiting");
 });
 
@@ -223,7 +223,7 @@ app.whenReady().then(() => {
       },
     },
   ]);
-  tray.setToolTip("APM 应用商店");
+  tray.setToolTip("星火应用商店");
   tray.setContextMenu(contextMenu);
   // 双击触发
   tray.on("click", () => {

@@ -23,7 +23,7 @@ type InstallTask = {
   filename?: string;
 };
 
-const SHELL_CALLER_PATH = "/opt/apm-store/extras/shell-caller.sh";
+const SHELL_CALLER_PATH = "/opt/spark-store/extras/shell-caller.sh";
 
 export const tasks = new Map<number, InstallTask>();
 
@@ -170,7 +170,7 @@ ipcMain.on("queue-install", async (event, download_json) => {
   const superUserCmd = await checkSuperUserCommand();
   let execCommand = "";
   const execParams = [];
-  const downloadDir = `/tmp/apm-store/download/${pkgname}`;
+  const downloadDir = `/tmp/spark-store/download/${pkgname}`;
 
   if (superUserCmd.length > 0) {
     execCommand = superUserCmd;
@@ -180,9 +180,9 @@ ipcMain.on("queue-install", async (event, download_json) => {
   }
 
   if (metalinkUrl && filename) {
-    execParams.push("apm", "ssaudit", `${downloadDir}/${filename}`);
+    execParams.push("aptss", "ssaudit", `${downloadDir}/${filename}`);
   } else {
-    execParams.push("apm", "install", "-y", pkgname);
+    execParams.push("aptss", "install", "-y", pkgname);
   }
 
   const task: InstallTask = {
@@ -401,7 +401,7 @@ ipcMain.handle("check-installed", async (_event, pkgname: string) => {
 
   const child = spawn(
     SHELL_CALLER_PATH,
-    ["apm", "list", "--installed", pkgname],
+    ["aptss", "list", "--installed", pkgname],
     {
       shell: true,
       env: process.env,
@@ -447,7 +447,7 @@ ipcMain.on("remove-installed", async (_event, pkgname: string) => {
   }
   const child = spawn(
     execCommand,
-    [...execParams, "apm", "remove", "-y", pkgname],
+    [...execParams, "aptss", "remove", "-y", pkgname],
     {
       shell: true,
       env: process.env,
@@ -488,7 +488,7 @@ ipcMain.on("remove-installed", async (_event, pkgname: string) => {
 
 ipcMain.handle("list-upgradable", async () => {
   const { code, stdout, stderr } = await runCommandCapture(SHELL_CALLER_PATH, [
-    "apm",
+    "aptss",
     "list",
     "--upgradable",
   ]);
@@ -511,8 +511,8 @@ ipcMain.handle("list-installed", async () => {
     superUserCmd.length > 0 ? superUserCmd : SHELL_CALLER_PATH;
   const execParams =
     superUserCmd.length > 0
-      ? [SHELL_CALLER_PATH, "apm", "list", "--installed"]
-      : ["apm", "list", "--installed"];
+      ? [SHELL_CALLER_PATH, "aptss", "list", "--installed"]
+      : ["aptss", "list", "--installed"];
 
   const { code, stdout, stderr } = await runCommandCapture(
     execCommand,
@@ -542,8 +542,8 @@ ipcMain.handle("uninstall-installed", async (_event, pkgname: string) => {
     superUserCmd.length > 0 ? superUserCmd : SHELL_CALLER_PATH;
   const execParams =
     superUserCmd.length > 0
-      ? [SHELL_CALLER_PATH, "apm", "remove", "-y", pkgname]
-      : ["apm", "remove", "-y", pkgname];
+      ? [SHELL_CALLER_PATH, "aptss", "remove", "-y", pkgname]
+      : ["aptss", "remove", "-y", pkgname];
 
   const { code, stdout, stderr } = await runCommandCapture(
     execCommand,
@@ -570,8 +570,8 @@ ipcMain.handle("launch-app", async (_event, pkgname: string) => {
     logger.warn("No pkgname provided for launch-app");
   }
 
-  const execCommand = "/opt/apm-store/extras/host-spawn";
-  const execParams = ["/opt/apm-store/extras/apm-launcher", "launch", pkgname];
+  const execCommand = "/opt/spark-store/extras/host-spawn";
+  const execParams = ["/opt/spark-store/extras/apm-launcher", "launch", pkgname];
 
   logger.info(
     `Launching app: ${pkgname} with command: ${execCommand} ${execParams.join(" ")}`,

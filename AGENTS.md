@@ -62,7 +62,7 @@ apm-app-store/
 ## 🎯 Core Concepts
 
 ### 1. APM Package Manager Integration
-The app acts as a GUI frontend for the APM CLI tool (`/opt/apm-store/extras/shell-caller.sh`).
+The app acts as a GUI frontend for the APM CLI tool (`/opt/spark-store/extras/shell-caller.sh`).
 
 **Key Operations:**
 - `apm install -y <pkgname>` - Install package
