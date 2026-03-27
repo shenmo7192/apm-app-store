@@ -884,15 +884,12 @@ const cancelDownload = (id: DownloadItem) => {
     // 发送到主进程取消
     window.ipcRenderer.send("cancel-install", download.id);
 
-    download.status = "failed"; // TODO: Use 'cancelled'instead of failed to type will be better though
+    download.status = "failed";
     download.logs.push({
       time: Date.now(),
       message: "下载已取消",
     });
-    // TODO: Remove from the list，but is it really necessary?
-    // Maybe keep it with 'cancelled' status for user reference
-    const idx = downloads.value.findIndex((d) => d.id === id.id);
-    if (idx !== -1) downloads.value.splice(idx, 1);
+    // 保留在队列中以便用户可以重试或查看日志
   }
 };
 

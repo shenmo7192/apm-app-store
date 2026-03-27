@@ -22,6 +22,7 @@ type InstallTask = {
   metalinkUrl?: string;
   filename?: string;
   origin: "spark" | "apm";
+  cancelled?: boolean;
 };
 
 const SHELL_CALLER_PATH = "/opt/spark-store/extras/shell-caller.sh";
@@ -294,11 +295,28 @@ ipcMain.on("cancel-install", (event, id) => {
   if (tasks.has(id)) {
     const task = tasks.get(id);
     if (task) {
-      task.download_process?.kill(); // Kill the download process
-      task.install_process?.kill(); // Kill the install process
+      task.cancelled = true;
+      task.download_process?.kill();
+      task.install_process?.kill();
       logger.info(`已取消任务: ${id}`);
+
+      // 主动发送完成（失败）事件，close 回调会因 cancelled 标志跳过
+      task.webContents?.send("install-complete", {
+        id,
+        success: false,
+        time: Date.now(),
+        exitCode: -1,
+        message: JSON.stringify({
+          message: "用户取消",
+          stdout: "",
+          stderr: "",
+        }),
+      });
+
+      tasks.delete(id);
+      idle = true;
+      if (tasks.size > 0) processNextInQueue();
     }
-    // Note: 'close' handler usually handles cleanup
   }
 });
 
@@ -455,6 +473,10 @@ async function processNextInQueue() {
 
             child.on("close", (code) => {
               clearInterval(timeoutChecker);
+              if (task.cancelled) {
+                resolve();
+                return;
+              }
               if (code === 0) {
                 webContents?.send("install-progress", { id, progress: 1 });
                 resolve();
@@ -514,6 +536,10 @@ async function processNextInQueue() {
       });
 
       child.on("close", (code) => {
+        if (task.cancelled) {
+          resolve({ code: code ?? -1, stdout, stderr });
+          return;
+        }
         resolve({ code: code ?? -1, stdout, stderr });
       });
       child.on("error", (err) => {
@@ -553,11 +579,13 @@ async function processNextInQueue() {
       }),
     });
   } finally {
-    tasks.delete(id);
-    idle = true;
-    // Trigger next
-    if (tasks.size > 0) {
-      processNextInQueue();
+    // 如果已被 cancel handler 清理，跳过重复清理
+    if (!task.cancelled) {
+      tasks.delete(id);
+      idle = true;
+      if (tasks.size > 0) {
+        processNextInQueue();
+      }
     }
   }
 }
