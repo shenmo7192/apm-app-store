@@ -357,6 +357,19 @@ async function processNextInQueue() {
 
       sendLog("Metalink 文件下载完成");
 
+      // 清理下载目录中的旧文件（保留 .metalink 文件），防止 aria2c 因同名文件卡住
+      const existingFiles = fs.readdirSync(downloadDir);
+      for (const file of existingFiles) {
+        if (file.endsWith(".metalink")) continue;
+        const filePath = path.join(downloadDir, file);
+        try {
+          fs.unlinkSync(filePath);
+          sendLog(`已清理旧文件: ${file}`);
+        } catch (err) {
+          logger.warn(`清理文件失败 ${filePath}: ${err}`);
+        }
+      }
+
       // Aria2c
       const aria2Args = [
         `--dir=${downloadDir}`,
@@ -369,6 +382,7 @@ async function processNextInQueue() {
         "--max-concurrent-downloads=4",
         "--min-split-size=1M",
         "--lowest-speed-limit=1K",
+        "--auto-file-renaming=false",
         "-M",
         metalinkPath,
       ];
@@ -384,6 +398,17 @@ async function processNextInQueue() {
         if (retryCount > 0) {
           sendLog(`第 ${retryCount} 次重试下载...`);
           webContents?.send("install-progress", { id, progress: 0 });
+          // 重试前也清理旧文件
+          const retryFiles = fs.readdirSync(downloadDir);
+          for (const file of retryFiles) {
+            if (file.endsWith(".metalink")) continue;
+            const filePath = path.join(downloadDir, file);
+            try {
+              fs.unlinkSync(filePath);
+            } catch (cleanErr) {
+              logger.warn(`重试清理文件失败 ${filePath}: ${cleanErr}`);
+            }
+          }
         }
 
         try {
