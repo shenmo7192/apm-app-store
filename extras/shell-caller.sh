@@ -54,6 +54,12 @@ command_type="$1"
 # 3. 根据指令类型分发逻辑
 case "$command_type" in
     "apm")
+        # 禁止 apm debug 命令
+        if [[ "$2" == "debug" ]]; then
+            echo "错误：apm debug 命令已被禁止执行。"
+            echo "提示：如需调试，请使用其他方式。"
+            exit 1
+        fi
         # 执行 apm 命令（跳过第一个参数）
         /usr/bin/apm "${@:2}" 2>&1
         exit_code=$?
