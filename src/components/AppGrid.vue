@@ -1,6 +1,23 @@
 <template>
+  <!-- 搜索结果为空 -->
   <div
-    v-if="!loading"
+    v-if="!loading && apps.length === 0"
+    class="flex flex-col items-center justify-center py-20 text-center"
+  >
+    <div
+      class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
+    >
+      <i class="fas fa-search text-3xl text-slate-400 dark:text-slate-500"></i>
+    </div>
+    <h3 class="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+      未找到应用
+    </h3>
+    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      试试其他关键词，或检查拼写是否正确
+    </p>
+  </div>
+  <div
+    v-else-if="!loading"
     class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
   >
     <AppCard
