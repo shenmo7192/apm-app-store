@@ -240,7 +240,7 @@ ipcMain.on("queue-install", async (event, download_json) => {
           title: "APM 安装成功",
           message: "恭喜您，APM 已成功安装",
           detail:
-            "APM 应用需重启后方可展示和使用，若完成安装后无法在应用列表中展示，请重启电脑后继续。",
+            "恭喜您，APM 已成功安装！您的应用已在安装中～\n首次安装APM后，需要重启电脑后方可在启动器展示应用。您可在应用安装完毕后择机重启电脑\n若您需要立即使用应用，可在应用安装后先在应用商店中打开您的应用。",
           buttons: ["确定"],
           defaultId: 0,
         });
@@ -763,16 +763,21 @@ ipcMain.handle("list-installed", async () => {
   const apmBasePath = "/var/lib/apm/apm/files/ace-env/var/lib/apm";
 
   try {
-    if (!fs.existsSync(apmBasePath)) {
-      logger.warn(`APM base path not found: ${apmBasePath}`);
+    // 使用 apm list --installed 获取所有已安装应用
+    const { code, stdout } = await runCommandCapture("apm", [
+      "list",
+      "--installed",
+    ]);
+
+    if (code !== 0) {
+      logger.warn(`Failed to list installed packages: ${stdout}`);
       return {
         success: false,
-        message: "APM base path not found",
+        message: "Failed to list installed packages",
         apps: [],
       };
     }
 
-    const packages = fs.readdirSync(apmBasePath, { withFileTypes: true });
     const installedApps: Array<{
       pkgname: string;
       name: string;
@@ -784,52 +789,40 @@ ipcMain.handle("list-installed", async () => {
       isDependency: boolean;
     }> = [];
 
-    for (const pkg of packages) {
-      if (!pkg.isDirectory()) continue;
+    const cleanStdout = stdout.replace(
+      // eslint-disable-next-line no-control-regex
+      /\x1b\[[0-9;]*m/g,
+      "",
+    );
+    const lines = cleanStdout.split("\n");
 
-      const pkgname = pkg.name;
-      const pkgPath = path.join(apmBasePath, pkgname);
-
-      const { code, stdout } = await runCommandCapture("apm", [
-        "list",
-        pkgname,
-      ]);
-      if (code !== 0) {
-        logger.warn(`Failed to list package ${pkgname}: ${stdout}`);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (
+        !trimmed ||
+        trimmed.startsWith("Listing") ||
+        trimmed.startsWith("[INFO]") ||
+        trimmed.startsWith("警告")
+      )
         continue;
-      }
 
-      const cleanStdout = stdout.replace(
-        // eslint-disable-next-line no-control-regex
-        /\x1b\[[0-9;]*m/g,
-        "",
+      // 解析格式: pkgname/repo,section version arch [flags]
+      const match = trimmed.match(
+        /^(\S+)\/\S+,\S+\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
       );
-      const lines = cleanStdout.split("\n");
+      if (!match) continue;
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (
-          !trimmed ||
-          trimmed.startsWith("Listing") ||
-          trimmed.startsWith("[INFO]") ||
-          trimmed.startsWith("警告")
-        )
-          continue;
+      const [, pkgname, version, arch, flags] = match;
 
-        const match = trimmed.match(
-          /^(\S+)\/\S+,\S+\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
-        );
-        if (!match) continue;
+      // 从桌面文件获取应用名称和图标
+      let appName = pkgname;
+      let icon = "";
+      const pkgPath = path.join(apmBasePath, pkgname);
+      const entriesPath = path.join(pkgPath, "entries", "applications");
+      const hasEntries = fs.existsSync(entriesPath);
 
-        const [, listedPkgname, version, arch, flags] = match;
-        if (listedPkgname !== pkgname) continue;
-
-        let appName = pkgname;
-        let icon = "";
-        const entriesPath = path.join(pkgPath, "entries", "applications");
-        const hasEntries = fs.existsSync(entriesPath);
-
-        if (hasEntries) {
+      if (hasEntries) {
+        try {
           const desktopFiles = fs.readdirSync(entriesPath);
           for (const file of desktopFiles) {
             if (file.endsWith(".desktop")) {
@@ -842,19 +835,21 @@ ipcMain.handle("list-installed", async () => {
               break;
             }
           }
+        } catch (e) {
+          logger.warn(`Failed to read desktop file for ${pkgname}: ${e}`);
         }
-
-        installedApps.push({
-          pkgname,
-          name: appName,
-          version,
-          arch,
-          flags,
-          origin: "apm",
-          icon: icon || undefined,
-          isDependency: !hasEntries,
-        });
       }
+
+      installedApps.push({
+        pkgname,
+        name: appName,
+        version,
+        arch,
+        flags,
+        origin: "apm",
+        icon: icon || undefined,
+        isDependency: !hasEntries,
+      });
     }
 
     installedApps.sort((a, b) => {
