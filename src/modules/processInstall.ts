@@ -183,13 +183,19 @@ window.ipcRenderer.on(
   },
 );
 
+const MAX_LOG_ENTRIES = 500;
+
 window.ipcRenderer.on("install-log", (_event, log: InstallLog) => {
   const downloadObj = downloads.value.find((d) => d.id === log.id);
-  if (downloadObj)
+  if (downloadObj) {
     downloadObj.logs.push({
       time: log.time,
       message: log.message,
     });
+    if (downloadObj.logs.length > MAX_LOG_ENTRIES) {
+      downloadObj.logs.splice(0, downloadObj.logs.length - MAX_LOG_ENTRIES);
+    }
+  }
 });
 
 window.ipcRenderer.on("install-complete", (_event, log: DownloadResult) => {

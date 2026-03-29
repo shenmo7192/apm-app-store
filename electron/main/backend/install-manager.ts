@@ -561,20 +561,42 @@ async function processNextInQueue() {
 
       let stdout = "";
       let stderr = "";
+      let logBuffer = "";
+      let logBufferTimer: NodeJS.Timeout | null = null;
+      const LOG_FLUSH_MS = 100;
+
+      const flushLogBuffer = () => {
+        if (logBuffer.length > 0) {
+          sendLog(logBuffer);
+          logBuffer = "";
+        }
+        logBufferTimer = null;
+      };
+
+      const bufferedSendLog = (message: string) => {
+        logBuffer += message;
+        if (!logBufferTimer) {
+          logBufferTimer = setTimeout(flushLogBuffer, LOG_FLUSH_MS);
+        }
+      };
 
       child.stdout.on("data", (d) => {
         const s = d.toString();
         stdout += s;
-        sendLog(s);
+        bufferedSendLog(s);
       });
 
       child.stderr.on("data", (d) => {
         const s = d.toString();
         stderr += s;
-        sendLog(s);
+        bufferedSendLog(s);
       });
 
       child.on("close", (code) => {
+        if (logBufferTimer) {
+          clearTimeout(logBufferTimer);
+          flushLogBuffer();
+        }
         if (task.cancelled) {
           reject(new Error("安装已取消"));
           return;
