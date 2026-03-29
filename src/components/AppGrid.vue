@@ -16,8 +16,10 @@
       试试其他关键词，或检查拼写是否正确
     </p>
   </div>
+
+  <!-- 应用数量较少时，使用普通网格 -->
   <div
-    v-else-if="!loading"
+    v-else-if="!loading && apps.length <= 50"
     class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
   >
     <AppCard
@@ -28,6 +30,28 @@
       @open-detail="$emit('open-detail', app)"
     />
   </div>
+
+  <!-- 应用数量较多时，使用虚拟滚动 -->
+  <RecycleScroller
+    v-else-if="!loading"
+    class="scroller"
+    :items="gridRows"
+    :item-size="itemHeight"
+    key-field="id"
+    v-slot="{ item }"
+  >
+    <div class="grid-row grid gap-x-4 gap-y-8" :class="gridColumnsClass">
+      <AppCard
+        v-for="app in item.apps"
+        :key="app.pkgname"
+        :app="app"
+        :show-origin="storeFilter === 'both'"
+        @open-detail="$emit('open-detail', app)"
+      />
+    </div>
+  </RecycleScroller>
+
+  <!-- 加载骨架屏 -->
   <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
     <div
       v-for="n in 8"
@@ -53,10 +77,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref, onMounted, onUnmounted } from "vue";
+import { RecycleScroller } from "vue-virtual-scroller";
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import AppCard from "./AppCard.vue";
 import type { App } from "../global/typedefinition";
 
-defineProps<{
+const props = defineProps<{
   apps: App[];
   loading: boolean;
   storeFilter?: "spark" | "apm" | "both";
@@ -65,4 +92,95 @@ defineProps<{
 defineEmits<{
   (e: "open-detail", app: App): void;
 }>();
+
+// 当前列数
+const columns = ref(4);
+
+// 根据窗口宽度更新列数
+const updateColumns = () => {
+  const width = window.innerWidth;
+  if (width >= 1536) columns.value = 4;
+  else if (width >= 1280) columns.value = 3;
+  else if (width >= 640) columns.value = 2;
+  else columns.value = 1;
+};
+
+onMounted(() => {
+  updateColumns();
+  window.addEventListener("resize", updateColumns);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateColumns);
+});
+
+// 网格列数类名
+const gridColumnsClass = computed(() => {
+  const map: Record<number, string> = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  };
+  return map[columns.value] || "grid-cols-4";
+});
+
+// 每个应用卡片的高度（包括 gap）
+// 卡片实际高度约 96px + 垂直间距 32px (gap-y-8)
+const itemHeight = 128;
+
+// 将应用列表分组为行
+const gridRows = computed(() => {
+  const rows: { id: number; apps: App[] }[] = [];
+
+  for (let i = 0; i < props.apps.length; i += columns.value) {
+    rows.push({
+      id: i,
+      apps: props.apps.slice(i, i + columns.value),
+    });
+  }
+
+  return rows;
+});
 </script>
+
+<style scoped>
+.scroller {
+  height: calc(100vh - 140px); /* 调整高度 */
+  overflow-y: auto;
+  padding: 0; /* 移除内边距 */
+  margin: -24px -16px; /* 抵消父容器的 px-4 py-6 */
+}
+
+@media (min-width: 1024px) {
+  .scroller {
+    margin: -24px -40px; /* 抵消父容器的 lg:px-10 */
+  }
+}
+
+.grid-row {
+  padding: 12px 16px;
+  box-sizing: border-box;
+  min-height: 128px; /* 确保最小高度 */
+}
+
+/* 确保 RecycleScroller 的样式正确 */
+:deep(.vue-recycle-scroller) {
+  position: relative;
+}
+
+:deep(.vue-recycle-scroller__item-wrapper) {
+  flex: 1;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+:deep(.vue-recycle-scroller__item-view) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+</style>

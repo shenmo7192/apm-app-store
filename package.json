@@ -75,6 +75,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
     "pino": "^10.3.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "vue-virtual-scroller": "^2.0.0-beta.8"
   }
 }

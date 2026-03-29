@@ -21,3 +21,26 @@ declare interface IpcChannels {
 }
 
 declare const __APP_VERSION__: string;
+
+// vue-virtual-scroller type declarations
+declare module "vue-virtual-scroller" {
+  import { DefineComponent } from "vue";
+
+  export const RecycleScroller: DefineComponent<{
+    items: any[];
+    itemSize: number;
+    keyField?: string;
+    direction?: "vertical" | "horizontal";
+    buffer?: number;
+  }>;
+
+  export const DynamicScroller: DefineComponent<{
+    items: any[];
+    minItemSize: number;
+    keyField?: string;
+    direction?: "vertical" | "horizontal";
+    buffer?: number;
+  }>;
+
+  export const DynamicScrollerItem: DefineComponent<{}>;
+}
