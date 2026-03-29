@@ -99,6 +99,25 @@ export function handleCommandLine(commandLine: string[]) {
           `Deep link: invalid search format, expected /pkgname, got ${url.pathname}`,
         );
       }
+    } else if (action === "store") {
+      // Format: spk://store/category/pkgname (legacy format)
+      // url.pathname will be '/category/pkgname'
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      // 老协议格式: spk://store/category/pkgname
+      // 现在忽略 category，直接使用 pkgname 查找应用
+      const pkgname = pathParts.length >= 2 ? pathParts[1] : pathParts[0];
+      if (pkgname) {
+        query.pkgname = pkgname;
+        logger.info(
+          `Deep link: store legacy format query found: ${JSON.stringify(query)}`,
+        );
+        // 使用 search 事件来处理，前端会根据 pkgname 直接打开应用详情
+        listeners.emit("search", query);
+      } else {
+        logger.warn(
+          `Deep link: invalid store format, expected /category/pkgname, got ${url.pathname}`,
+        );
+      }
     } else {
       logger.warn(`Deep link: unknown action ${action}`);
     }

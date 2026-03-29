@@ -1146,7 +1146,28 @@ onMounted(async () => {
   window.ipcRenderer.on(
     "deep-link-search",
     (_event: IpcRendererEvent, data: { pkgname: string }) => {
-      searchQuery.value = data.pkgname;
+      // 根据包名直接打开应用详情
+      const tryOpen = () => {
+        const target = apps.value.find((a) => a.pkgname === data.pkgname);
+        if (target) {
+          openDetail(target);
+        } else {
+          // 如果找不到应用，回退到搜索模式
+          searchQuery.value = data.pkgname;
+          logger.warn(`Deep link: app ${data.pkgname} not found, fallback to search`);
+        }
+      };
+
+      if (loading.value) {
+        const stop = watch(loading, (val) => {
+          if (!val) {
+            tryOpen();
+            stop();
+          }
+        });
+      } else {
+        tryOpen();
+      }
     },
   );
 
