@@ -140,44 +140,46 @@
               <button
                 v-if="!isinstalled"
                 type="button"
-                class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r px-4 py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-40 transition hover:-translate-y-0.5"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white shadow-sm disabled:opacity-40 transition"
                 :class="
                   installFeedback
-                    ? 'from-emerald-500 to-emerald-600'
-                    : 'from-brand to-brand-dark'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600'
                 "
                 @click="handleInstall"
                 :disabled="installFeedback || isOtherVersionInstalled"
               >
                 <i
-                  class="fas"
+                  class="fas text-xs"
                   :class="installFeedback ? 'fa-check' : 'fa-download'"
                 ></i>
                 <span>{{ installBtnText }}</span>
               </button>
               <template v-else>
-                <button
-                  type="button"
-                  class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
-                  @click="
-                    emit(
-                      'open-app',
-                      displayApp?.pkgname || '',
-                      displayApp?.origin,
-                    )
-                  "
-                >
-                  <i class="fas fa-external-link-alt"></i>
-                  <span>打开</span>
-                </button>
-                <button
-                  type="button"
-                  class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 disabled:opacity-40 transition hover:-translate-y-0.5"
-                  @click="handleRemove"
-                >
-                  <i class="fas fa-trash"></i>
-                  <span>卸载</span>
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
+                    @click="
+                      emit(
+                        'open-app',
+                        displayApp?.pkgname || '',
+                        displayApp?.origin,
+                      )
+                    "
+                  >
+                    <i class="fas fa-external-link-alt text-xs"></i>
+                    <span>打开</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-rose-400 hover:text-rose-500 hover:bg-rose-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 dark:hover:bg-slate-700"
+                    @click="handleRemove"
+                  >
+                    <i class="fas fa-trash text-xs"></i>
+                    <span>卸载</span>
+                  </button>
+                </div>
               </template>
             </div>
 
