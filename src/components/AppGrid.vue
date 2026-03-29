@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="!loading"
-    class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+    class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
   >
     <AppCard
       v-for="(app, index) in apps"
@@ -12,7 +12,7 @@
   </div>
   <div
     v-else
-    class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+    class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
   >
     <div
       v-for="n in 8"

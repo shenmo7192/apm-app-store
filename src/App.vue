@@ -1068,8 +1068,12 @@ onMounted(async () => {
   await loadCategories();
 
   // 分类目录加载后，并行加载主页数据和所有应用列表
+  // 使用非阻塞方式加载，让UI先展示出来
   loading.value = true;
-  await Promise.all([
+  homeLoading.value = true;
+
+  // 启动加载任务，但不等待它们完成
+  Promise.all([
     loadHome(),
     new Promise<void>((resolve) => {
       loadApps(() => {
@@ -1077,7 +1081,10 @@ onMounted(async () => {
         resolve();
       });
     }),
-  ]);
+  ]).then(() => {
+    // 所有数据加载完成后的回调（可选）
+    logger.info("所有应用数据加载完成");
+  });
 
   // 设置键盘导航
   document.addEventListener("keydown", (e) => {

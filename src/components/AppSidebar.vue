@@ -32,7 +32,7 @@
 
     <StoreModeSwitcher />
 
-    <div class="flex-1 space-y-2 overflow-y-auto scrollbar-muted pr-2">
+    <div class="flex-1 space-y-2 overflow-y-auto scrollbar-muted px-2 py-1">
       <button
         type="button"
         class="flex w-full items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-left text-sm font-medium text-slate-600 transition hover:border-brand/30 hover:bg-brand/5 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 dark:text-slate-300 dark:hover:bg-slate-800"
