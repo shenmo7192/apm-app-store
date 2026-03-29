@@ -158,24 +158,33 @@ ipcMain.on("queue-install", async (event, download_json) => {
 
   logger.info(`收到下载任务: ${id}, 软件包名称: ${pkgname}, 来源: ${origin}`);
 
-  // 避免重复添加同一任务，但允许重试下载
-  if (tasks.has(id) && !download.retry) {
-    tasks.get(id)?.webContents?.send("install-log", {
-      id,
-      time: Date.now(),
-      message: `任务id： ${id} 已在列表中，忽略重复添加`,
-    });
-    tasks.get(id)?.webContents?.send("install-complete", {
-      id: id,
-      success: false,
-      time: Date.now(),
-      exitCode: -1,
-      message: `{"message":"任务id： ${id} 已在列表中，忽略重复添加","stdout":"","stderr":""}`,
-    });
-    return;
-  }
-
   const webContents = event.sender;
+
+  // 避免重复添加同一任务（检查 pkgname + origin），但允许重试下载
+  if (!download.retry) {
+    const existingTask = Array.from(tasks.values()).find(
+      (t) => t.pkgname === pkgname && t.origin === origin,
+    );
+    if (existingTask) {
+      webContents.send("install-log", {
+        id,
+        time: Date.now(),
+        message: `任务 ${pkgname} (${origin}) 已在列表中，忽略重复添加`,
+      });
+      webContents.send("install-complete", {
+        id,
+        success: false,
+        time: Date.now(),
+        exitCode: -1,
+        message: JSON.stringify({
+          message: `任务 ${pkgname} (${origin}) 已在列表中，忽略重复添加`,
+          stdout: "",
+          stderr: "",
+        }),
+      });
+      return;
+    }
+  }
   const superUserCmd = await checkSuperUserCommand();
   let execCommand = "";
   const execParams = [];
@@ -330,6 +339,16 @@ async function processNextInQueue() {
     return;
   }
 
+  // 如果任务已被取消，跳过并处理下一个
+  if (task.cancelled) {
+    tasks.delete(task.id);
+    idle = true;
+    if (tasks.size > 0) {
+      processNextInQueue();
+    }
+    return;
+  }
+
   idle = false;
   const { webContents, id, downloadDir } = task;
 
@@ -475,7 +494,7 @@ async function processNextInQueue() {
             child.on("close", (code) => {
               clearInterval(timeoutChecker);
               if (task.cancelled) {
-                resolve();
+                reject(new Error("下载已取消"));
                 return;
               }
               if (code === 0) {
@@ -490,6 +509,10 @@ async function processNextInQueue() {
               reject(err);
             });
           });
+          // 下载成功后检查是否已取消
+          if (task.cancelled) {
+            throw new Error("下载已取消");
+          }
           downloadSuccess = true;
         } catch (err) {
           retryCount++;
@@ -501,6 +524,11 @@ async function processNextInQueue() {
           await new Promise((r) => setTimeout(r, 2000));
         }
       }
+    }
+
+    // 进入安装阶段前检查是否已取消
+    if (task.cancelled) {
+      throw new Error("安装已取消");
     }
 
     // 2. Install Phase
@@ -538,7 +566,7 @@ async function processNextInQueue() {
 
       child.on("close", (code) => {
         if (task.cancelled) {
-          resolve({ code: code ?? -1, stdout, stderr });
+          reject(new Error("安装已取消"));
           return;
         }
         resolve({ code: code ?? -1, stdout, stderr });

@@ -25,8 +25,15 @@ export const handleInstall = (appObj?: App) => {
   const targetApp = appObj || currentApp.value;
   if (!targetApp?.pkgname) return;
 
-  if (downloads.value.find((d) => d.pkgname === targetApp.pkgname)) {
-    logger.info(`任务已存在，忽略重复添加: ${targetApp.pkgname}`);
+  if (
+    downloads.value.find(
+      (d) =>
+        d.pkgname === targetApp.pkgname && d.origin === targetApp.origin,
+    )
+  ) {
+    logger.info(
+      `任务已存在，忽略重复添加: ${targetApp.pkgname} (${targetApp.origin})`,
+    );
     return;
   }
 
@@ -95,8 +102,14 @@ export const handleRetry = (download_: DownloadItem) => {
 export const handleUpgrade = (app: App) => {
   if (!app.pkgname) return;
 
-  if (downloads.value.find((d) => d.pkgname === app.pkgname)) {
-    logger.info(`任务已存在，忽略重复添加: ${app.pkgname}`);
+  if (
+    downloads.value.find(
+      (d) => d.pkgname === app.pkgname && d.origin === app.origin,
+    )
+  ) {
+    logger.info(
+      `任务已存在，忽略重复添加: ${app.pkgname} (${app.origin})`,
+    );
     return;
   }
 
