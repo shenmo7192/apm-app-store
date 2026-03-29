@@ -806,11 +806,15 @@ ipcMain.handle("list-installed", async () => {
       )
         continue;
 
-      // 解析格式: pkgname/repo,section version arch [flags]
+      // 解析格式: pkgname/repo,section version arch [flags] 或 pkgname/repo version arch [flags]
+      // 注意: repo后面可能有逗号和section，也可能没有
       const match = trimmed.match(
-        /^(\S+)\/\S+,\S+\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
+        /^(\S+)\/\S+(?:,\S+)?\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
       );
-      if (!match) continue;
+      if (!match) {
+        logger.debug(`Failed to parse line: ${trimmed}`);
+        continue;
+      }
 
       const [, pkgname, version, arch, flags] = match;
 
@@ -824,20 +828,25 @@ ipcMain.handle("list-installed", async () => {
       if (hasEntries) {
         try {
           const desktopFiles = fs.readdirSync(entriesPath);
+          logger.debug(`Found desktop files for ${pkgname}: ${desktopFiles.join(", ")}`);
           for (const file of desktopFiles) {
             if (file.endsWith(".desktop")) {
               const desktopPath = path.join(entriesPath, file);
+              logger.debug(`Reading desktop file: ${desktopPath}`);
               const content = fs.readFileSync(desktopPath, "utf-8");
               const nameMatch = content.match(/^Name=(.+)$/m);
               const iconMatch = content.match(/^Icon=(.+)$/m);
               if (nameMatch) appName = nameMatch[1].trim();
               if (iconMatch) icon = iconMatch[1].trim();
+              logger.debug(`Parsed desktop file for ${pkgname}: name=${appName}, icon=${icon}`);
               break;
             }
           }
         } catch (e) {
           logger.warn(`Failed to read desktop file for ${pkgname}: ${e}`);
         }
+      } else {
+        logger.debug(`No entries path for ${pkgname}: ${entriesPath}`);
       }
 
       installedApps.push({
@@ -866,6 +875,7 @@ ipcMain.handle("list-installed", async () => {
       return a.pkgname.localeCompare(b.pkgname);
     });
 
+    logger.info(`Found ${installedApps.length} installed APM apps`);
     return { success: true, apps: installedApps };
   } catch (error) {
     logger.error(
