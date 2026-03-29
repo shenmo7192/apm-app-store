@@ -276,7 +276,7 @@ ipcMain.on("queue-install", async (event, download_json) => {
     execParams.push("apm");
 
     if (metalinkUrl && filename) {
-      execParams.push("ssaudit", `${downloadDir}/${filename}`);
+      execParams.push("ssinstall", `${downloadDir}/${filename}`);
     } else {
       execParams.push("install", "-y", pkgname);
     }

@@ -60,9 +60,20 @@ case "$command_type" in
             echo "提示：如需调试，请使用其他方式。"
             exit 1
         fi
+        # 禁止 apm ssaudit 命令（已弃用，请使用 apm ssinstall）
+        if [[ "$2" == "ssaudit" ]]; then
+            echo "错误：apm ssaudit 命令已被弃用，请使用 apm ssinstall。"
+            echo "提示：请将 APM 升级到 1.2.2 版本以上以继续使用安装功能。"
+            exit 1
+        fi
         # 执行 apm 命令（跳过第一个参数）
         /usr/bin/apm "${@:2}" 2>&1
         exit_code=$?
+        # 如果 apm ssinstall 执行失败，提示可能是版本过低
+        if [[ "$2" == "ssinstall" && "$exit_code" != "0" ]]; then
+            echo "提示：apm ssinstall 执行失败，可能是您的 APM 版本过低（需要 1.2.2+）。"
+            echo "请升级 APM 到 1.2.2 版本以上来继续安装。"
+        fi
         ;;
 
     "ssinstall")
