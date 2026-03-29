@@ -407,12 +407,14 @@ async function processNextInQueue() {
 
       sendStatus("downloading");
 
-      // 下载重试逻辑：卡在0% 30秒则重启，最多3次
-      const maxRetries = 3;
+      // 下载重试逻辑：每次超时时间递增，最多3次
+      const timeoutList = [3000, 5000, 15000]; // 第一次3秒，第二次5秒，第三次15秒
       let retryCount = 0;
       let downloadSuccess = false;
 
-      while (retryCount < maxRetries && !downloadSuccess) {
+      while (retryCount < timeoutList.length && !downloadSuccess) {
+        const currentTimeout = timeoutList[retryCount];
+
         if (retryCount > 0) {
           sendLog(`第 ${retryCount} 次重试下载...`);
           webContents?.send("install-progress", { id, progress: 0 });
@@ -437,8 +439,7 @@ async function processNextInQueue() {
 
             let lastProgressTime = Date.now();
             let lastProgress = 0;
-            const zeroProgressTimeout = 30000; // 0%卡死30秒超时
-            const progressCheckInterval = 3000; // 每3秒检查一次
+            const progressCheckInterval = 1000; // 每1秒检查一次
 
             // 设置超时检测定时器
             const timeoutChecker = setInterval(() => {
@@ -446,12 +447,12 @@ async function processNextInQueue() {
               // 只在进度为0时检查超时
               if (
                 lastProgress === 0 &&
-                now - lastProgressTime > zeroProgressTimeout
+                now - lastProgressTime > currentTimeout
               ) {
                 clearInterval(timeoutChecker);
                 child.kill();
                 reject(
-                  new Error(`下载卡在0%超过 ${zeroProgressTimeout / 1000} 秒`),
+                  new Error(`下载卡在0%超过 ${currentTimeout / 1000} 秒`),
                 );
               }
             }, progressCheckInterval);
@@ -492,10 +493,10 @@ async function processNextInQueue() {
           downloadSuccess = true;
         } catch (err) {
           retryCount++;
-          if (retryCount >= maxRetries) {
-            throw new Error(`下载失败，已重试 ${maxRetries} 次: ${err}`);
+          if (retryCount >= timeoutList.length) {
+            throw new Error(`下载失败，已重试 ${timeoutList.length} 次: ${err}`);
           }
-          sendLog(`下载失败，准备重试 (${retryCount}/${maxRetries})`);
+          sendLog(`下载失败，准备重试 (${retryCount}/${timeoutList.length})`);
           // 等待2秒后重试
           await new Promise((r) => setTimeout(r, 2000));
         }
