@@ -32,10 +32,18 @@
         class="h-32 w-32 mb-6 opacity-90"
       />
       <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-        {{ storeFilter === 'apm' ? '欢迎来到星火应用商店 (Amber PM)' : '欢迎来到星火应用商店' }}
+        {{
+          storeFilter === "apm"
+            ? "欢迎来到星火应用商店 (Amber PM)"
+            : "欢迎来到星火应用商店"
+        }}
       </h1>
       <p class="text-sm text-slate-500 dark:text-slate-400">
-        {{ storeFilter === 'apm' ? '探索丰富的应用，发现更多精彩内容' : '探索丰富的应用，发现更多精彩内容' }}
+        {{
+          storeFilter === "apm"
+            ? "探索丰富的应用，发现更多精彩内容"
+            : "探索丰富的应用，发现更多精彩内容"
+        }}
       </p>
     </div>
     <!-- 有数据就立即展示，图片逐步加载 -->
@@ -43,7 +51,11 @@
       <!-- 左上角欢迎语 -->
       <div class="mb-4">
         <h1 class="text-xl font-bold text-slate-800 dark:text-slate-200">
-          {{ storeFilter === 'apm' ? '欢迎来到星火应用商店 (Amber PM)' : '欢迎来到星火应用商店' }}
+          {{
+            storeFilter === "apm"
+              ? "欢迎来到星火应用商店 (Amber PM)"
+              : "欢迎来到星火应用商店"
+          }}
         </h1>
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
           探索丰富的应用，发现更多精彩内容
@@ -61,29 +73,41 @@
           :title="link.more as string"
         >
           <!-- 图片区域 - 850:400 比例 -->
-          <div class="relative w-full aspect-[850/400] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+          <div
+            class="relative w-full aspect-[850/400] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+          >
             <img
               :src="computedImgUrl(link)"
               class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
               @load="onImageLoad(link.url + link.name)"
               @error="onImageError(link.url + link.name)"
-              :class="{ 'opacity-0': !imageLoaded[link.url + link.name], 'opacity-100 transition-opacity duration-300': imageLoaded[link.url + link.name] }"
+              :class="{
+                'opacity-0': !imageLoaded[link.url + link.name],
+                'opacity-100 transition-opacity duration-300':
+                  imageLoaded[link.url + link.name],
+              }"
             />
             <!-- 图片加载占位符 -->
             <div
               v-if="!imageLoaded[link.url + link.name]"
               class="absolute inset-0 flex items-center justify-center"
             >
-              <div class="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+              <div
+                class="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"
+              ></div>
             </div>
           </div>
           <!-- 文字信息区域 -->
           <div class="mt-3 px-1">
-            <div class="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand dark:group-hover:text-brand transition-colors">
+            <div
+              class="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand dark:group-hover:text-brand transition-colors"
+            >
               {{ link.name }}
             </div>
-            <div class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+            <div
+              class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1"
+            >
               {{ link.more }}
             </div>
           </div>
@@ -103,7 +127,7 @@
               v-for="app in section.apps"
               :key="app.pkgname"
               :app="app"
-              @open-detail="$emit('open-detail', $event)"
+              @open-detail="handleOpenDetail(app)"
             />
           </div>
         </section>
@@ -126,9 +150,14 @@ defineProps<{
   storeFilter?: "spark" | "apm" | "both";
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "open-detail", app: App | Record<string, unknown>): void;
 }>();
+
+// 处理应用卡片点击，添加来自首页的标记
+const handleOpenDetail = (app: App) => {
+  emit("open-detail", { ...app, _fromHomeView: true });
+};
 
 // 图片加载状态跟踪
 const imageLoaded = reactive<Record<string, boolean>>({});

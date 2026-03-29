@@ -389,84 +389,191 @@ const selectCategory = (category: string) => {
   }
 };
 
+// 从仓库获取应用详细信息的辅助函数
+const fetchAppFromStore = async (
+  pkgname: string,
+  category: string,
+  origin: "spark" | "apm",
+): Promise<App | null> => {
+  try {
+    const arch = window.apm_store.arch || "amd64";
+    const finalArch = origin === "spark" ? `${arch}-store` : `${arch}-apm`;
+    const appJsonUrl = `${APM_STORE_BASE_URL}/${finalArch}/${category}/${pkgname}/app.json`;
+    const response = await fetch(cacheBuster(appJsonUrl));
+    if (!response.ok) return null;
+    const appJson = await response.json();
+    return {
+      name: appJson.Name || "",
+      pkgname: appJson.Pkgname || pkgname,
+      version: appJson.Version || "",
+      filename: appJson.Filename || "",
+      torrent_address: appJson.Torrent_address || "",
+      author: appJson.Author || "",
+      contributor: appJson.Contributor || "",
+      website: appJson.Website || "",
+      update: appJson.Update || "",
+      size: appJson.Size || "",
+      more: appJson.More || "",
+      tags: appJson.Tags || "",
+      img_urls:
+        typeof appJson.img_urls === "string"
+          ? (JSON.parse(appJson.img_urls) as string[])
+          : appJson.img_urls || [],
+      icons: appJson.icons || "",
+      category: category,
+      origin: origin,
+      currentStatus: "not-installed",
+    };
+  } catch (e) {
+    console.warn(`Failed to fetch ${origin} app info for ${pkgname}`, e);
+    return null;
+  }
+};
+
 const openDetail = async (app: App | Record<string, unknown>) => {
-  // 提取 pkgname（必须存在）
+  // 提取 pkgname 和 category（必须存在）
   const pkgname = (app as Record<string, unknown>).pkgname as string;
+  const category =
+    ((app as Record<string, unknown>).category as string) || "unknown";
+  // 检查是否来自 HomeView 或 DeepLink（需要重新获取完整信息）
+  const fromHomeView = (app as Record<string, unknown>)._fromHomeView === true;
+  const fromDeepLink = (app as Record<string, unknown>)._fromDeepLink === true;
+  const needFetchFromStore = fromHomeView || fromDeepLink;
   if (!pkgname) {
     console.warn("openDetail: 缺少 pkgname", app);
     return;
   }
 
-  // 首先尝试从当前已经处理好（合并/筛选）的 filteredApps 中查找，以便获取 isMerged 状态等
+  // 首先尝试从当前已经处理好（合并/筛选）的 filteredApps 中查找
   let fullApp = filteredApps.value.find((a) => a.pkgname === pkgname);
-  // 如果没找到（可能是从已安装列表之类的其他入口打开的），回退到全局 apps 中查找完整 App
+  // 如果没找到，回退到全局 apps 中查找
   if (!fullApp) {
     fullApp = apps.value.find((a) => a.pkgname === pkgname);
   }
-  if (!fullApp) {
-    // 构造一个最小可用的 App 对象
-    fullApp = {
-      name: ((app as Record<string, unknown>).name as string) || "",
-      pkgname: pkgname,
-      version: ((app as Record<string, unknown>).version as string) || "",
-      filename: ((app as Record<string, unknown>).filename as string) || "",
-      category:
-        ((app as Record<string, unknown>).category as string) || "unknown",
-      torrent_address: "",
-      author: "",
-      contributor: "",
-      website: "",
-      update: "",
-      size: "",
-      more: ((app as Record<string, unknown>).more as string) || "",
-      tags: "",
-      img_urls: [],
-      icons: "",
-      origin:
-        ((app as Record<string, unknown>).origin as "spark" | "apm") || "apm",
-      currentStatus: "not-installed",
-    } as App;
+
+  let finalApp: App;
+
+  // 来自 HomeView 或 DeepLink 的应用需要重新从仓库获取完整信息
+  if (needFetchFromStore) {
+    // 从 Spark 和 APM 仓库获取完整的应用信息
+    const [sparkApp, apmApp] = await Promise.all([
+      storeFilter.value !== "apm"
+        ? fetchAppFromStore(pkgname, category, "spark")
+        : Promise.resolve(null),
+      storeFilter.value !== "spark"
+        ? fetchAppFromStore(pkgname, category, "apm")
+        : Promise.resolve(null),
+    ]);
+
+    // 构建合并的应用对象
+    if (sparkApp || apmApp) {
+      // 如果两个仓库都有这个应用，创建合并对象
+      if (sparkApp && apmApp) {
+        finalApp = {
+          ...sparkApp, // 默认使用 Spark 的信息作为主显示
+          isMerged: true,
+          sparkApp: sparkApp,
+          apmApp: apmApp,
+          viewingOrigin: "spark", // 默认查看 Spark 版本
+        };
+      } else if (sparkApp) {
+        finalApp = sparkApp;
+      } else {
+        finalApp = apmApp!;
+      }
+    } else if (fullApp) {
+      finalApp = fullApp;
+    } else {
+      // 两个仓库都没有找到，且本地也没有，构造一个最小可用的 App 对象
+      finalApp = {
+        name: ((app as Record<string, unknown>).name as string) || "",
+        pkgname: pkgname,
+        version: ((app as Record<string, unknown>).version as string) || "",
+        filename: ((app as Record<string, unknown>).filename as string) || "",
+        category: category,
+        torrent_address: "",
+        author: "",
+        contributor: "",
+        website: "",
+        update: "",
+        size: "",
+        more: ((app as Record<string, unknown>).more as string) || "",
+        tags: "",
+        img_urls: [],
+        icons: "",
+        origin:
+          ((app as Record<string, unknown>).origin as "spark" | "apm") || "apm",
+        currentStatus: "not-installed",
+      } as App;
+    }
+  } else {
+    // 非 HomeView 来源，使用原来的逻辑
+    if (fullApp) {
+      finalApp = fullApp;
+    } else {
+      // 构造一个最小可用的 App 对象
+      finalApp = {
+        name: ((app as Record<string, unknown>).name as string) || "",
+        pkgname: pkgname,
+        version: ((app as Record<string, unknown>).version as string) || "",
+        filename: ((app as Record<string, unknown>).filename as string) || "",
+        category: category,
+        torrent_address: "",
+        author: "",
+        contributor: "",
+        website: "",
+        update: "",
+        size: "",
+        more: ((app as Record<string, unknown>).more as string) || "",
+        tags: "",
+        img_urls: [],
+        icons: "",
+        origin:
+          ((app as Record<string, unknown>).origin as "spark" | "apm") || "apm",
+        currentStatus: "not-installed",
+      } as App;
+    }
   }
 
-  // 合并应用：先检查 Spark/APM 安装状态，已安装的版本优先展示
-  if (fullApp.isMerged && (fullApp.sparkApp || fullApp.apmApp)) {
+  // 检查 Spark/APM 安装状态，已安装的版本优先展示
+  if (finalApp.isMerged && (finalApp.sparkApp || finalApp.apmApp)) {
     const [sparkInstalled, apmInstalled] = await Promise.all([
-      fullApp.sparkApp
+      finalApp.sparkApp
         ? (window.ipcRenderer.invoke("check-installed", {
-            pkgname: fullApp.sparkApp.pkgname,
+            pkgname: finalApp.sparkApp.pkgname,
             origin: "spark",
           }) as Promise<boolean>)
         : Promise.resolve(false),
-      fullApp.apmApp
+      finalApp.apmApp
         ? (window.ipcRenderer.invoke("check-installed", {
-            pkgname: fullApp.apmApp.pkgname,
+            pkgname: finalApp.apmApp.pkgname,
             origin: "apm",
           }) as Promise<boolean>)
         : Promise.resolve(false),
     ]);
     if (sparkInstalled && !apmInstalled) {
-      fullApp.viewingOrigin = "spark";
+      finalApp.viewingOrigin = "spark";
     } else if (apmInstalled && !sparkInstalled) {
-      fullApp.viewingOrigin = "apm";
+      finalApp.viewingOrigin = "apm";
     }
-    // 若都安装或都未安装，不设置 viewingOrigin，由模态框默认展示 spark
+    // 若都安装或都未安装，默认展示 spark
   }
 
   const displayAppForScreenshots =
-    fullApp.viewingOrigin !== undefined && fullApp.isMerged
-      ? ((fullApp.viewingOrigin === "spark"
-          ? fullApp.sparkApp
-          : fullApp.apmApp) ?? fullApp)
-      : fullApp;
+    finalApp.viewingOrigin !== undefined && finalApp.isMerged
+      ? ((finalApp.viewingOrigin === "spark"
+          ? finalApp.sparkApp
+          : finalApp.apmApp) ?? finalApp)
+      : finalApp;
 
-  currentApp.value = fullApp;
+  currentApp.value = finalApp;
   currentScreenIndex.value = 0;
   loadScreenshots(displayAppForScreenshots);
   showModal.value = true;
 
   currentAppSparkInstalled.value = false;
   currentAppApmInstalled.value = false;
-  checkAppInstalled(fullApp);
+  checkAppInstalled(finalApp);
 
   nextTick(() => {
     const modal = document.querySelector(
@@ -1181,9 +1288,12 @@ onMounted(async () => {
     (_event: IpcRendererEvent, data: { pkgname: string }) => {
       // 根据包名直接打开应用详情
       const tryOpen = () => {
+        // 先切换到"全部应用"分类
+        activeCategory.value = "all";
+        // 使用类似 HomeView 的方式打开应用，从两个仓库获取完整信息
         const target = apps.value.find((a) => a.pkgname === data.pkgname);
         if (target) {
-          openDetail(target);
+          openDetail({ ...target, _fromDeepLink: true });
         } else {
           // 如果找不到应用，回退到搜索模式
           searchQuery.value = data.pkgname;

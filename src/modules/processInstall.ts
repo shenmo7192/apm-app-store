@@ -27,8 +27,7 @@ export const handleInstall = (appObj?: App) => {
 
   if (
     downloads.value.find(
-      (d) =>
-        d.pkgname === targetApp.pkgname && d.origin === targetApp.origin,
+      (d) => d.pkgname === targetApp.pkgname && d.origin === targetApp.origin,
     )
   ) {
     logger.info(
@@ -107,9 +106,7 @@ export const handleUpgrade = (app: App) => {
       (d) => d.pkgname === app.pkgname && d.origin === app.origin,
     )
   ) {
-    logger.info(
-      `任务已存在，忽略重复添加: ${app.pkgname} (${app.origin})`,
-    );
+    logger.info(`任务已存在，忽略重复添加: ${app.pkgname} (${app.origin})`);
     return;
   }
 

@@ -480,9 +480,7 @@ async function processNextInQueue() {
               ) {
                 clearInterval(timeoutChecker);
                 child.kill();
-                reject(
-                  new Error(`下载卡在0%超过 ${currentTimeout / 1000} 秒`),
-                );
+                reject(new Error(`下载卡在0%超过 ${currentTimeout / 1000} 秒`));
               }
             }, progressCheckInterval);
 
@@ -527,7 +525,9 @@ async function processNextInQueue() {
         } catch (err) {
           retryCount++;
           if (retryCount >= timeoutList.length) {
-            throw new Error(`下载失败，已重试 ${timeoutList.length} 次: ${err}`);
+            throw new Error(
+              `下载失败，已重试 ${timeoutList.length} 次: ${err}`,
+            );
           }
           sendLog(`下载失败，准备重试 (${retryCount}/${timeoutList.length})`);
           // 等待2秒后重试
@@ -860,7 +860,9 @@ ipcMain.handle("list-installed", async () => {
       if (hasEntries) {
         try {
           const desktopFiles = fs.readdirSync(entriesPath);
-          logger.debug(`Found desktop files for ${pkgname}: ${desktopFiles.join(", ")}`);
+          logger.debug(
+            `Found desktop files for ${pkgname}: ${desktopFiles.join(", ")}`,
+          );
           for (const file of desktopFiles) {
             if (file.endsWith(".desktop")) {
               const desktopPath = path.join(entriesPath, file);
@@ -870,7 +872,9 @@ ipcMain.handle("list-installed", async () => {
               const iconMatch = content.match(/^Icon=(.+)$/m);
               if (nameMatch) appName = nameMatch[1].trim();
               if (iconMatch) icon = iconMatch[1].trim();
-              logger.debug(`Parsed desktop file for ${pkgname}: name=${appName}, icon=${icon}`);
+              logger.debug(
+                `Parsed desktop file for ${pkgname}: name=${appName}, icon=${icon}`,
+              );
               break;
             }
           }

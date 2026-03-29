@@ -21,30 +21,29 @@
         >
           {{ app.name || "" }}
         </div>
-        <span
-          :class="[
-            'shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm',
-            app.isMerged
-              ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-              : app.origin === 'spark'
-                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
-                : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-          ]"
-        >
-          {{
-            app.isMerged
-              ? "Spark/APM"
-              : app.origin === "spark"
-                ? "Spark"
-                : "APM"
-          }}
-        </span>
+        <!-- 来源标识：支持同时显示多个 -->
+        <div class="flex shrink-0 gap-1">
+          <span
+            v-if="showSparkBadge"
+            class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+          >
+            Spark
+          </span>
+          <span
+            v-if="showApmBadge"
+            class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+          >
+            APM
+          </span>
+        </div>
       </div>
       <div class="text-sm text-slate-500 dark:text-slate-400 leading-tight">
         {{ app.pkgname || "" }} · {{ app.version || "" }}
       </div>
-      <div class="truncate text-xs text-slate-500 dark:text-slate-400 leading-tight">
-        {{ description || '\u00A0' }}
+      <div
+        class="truncate text-xs text-slate-500 dark:text-slate-400 leading-tight"
+      >
+        {{ description || "\u00A0" }}
       </div>
     </div>
   </div>
@@ -57,6 +56,9 @@ import type { App } from "../global/typedefinition";
 
 const props = defineProps<{
   app: App;
+  // 从外部传入的 Spark/APM 可用性信息
+  sparkAvailable?: boolean;
+  apmAvailable?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -68,6 +70,22 @@ const isLoaded = ref(false);
 const loadedIcon = ref(
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E',
 );
+
+// 是否显示 Spark 标识
+const showSparkBadge = computed(() => {
+  // 如果明确指定了 sparkAvailable，使用它
+  if (props.sparkAvailable !== undefined) return props.sparkAvailable;
+  // 否则根据 app 的 origin 或 isMerged 判断
+  return props.app.origin === "spark" || props.app.isMerged === true;
+});
+
+// 是否显示 APM 标识
+const showApmBadge = computed(() => {
+  // 如果明确指定了 apmAvailable，使用它
+  if (props.apmAvailable !== undefined) return props.apmAvailable;
+  // 否则根据 app 的 origin 或 isMerged 判断
+  return props.app.origin === "apm" || props.app.isMerged === true;
+});
 
 const iconPath = computed(() => {
   const arch = window.apm_store.arch || "amd64";

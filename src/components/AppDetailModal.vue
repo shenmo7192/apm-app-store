@@ -57,14 +57,25 @@
             <!-- 版本号和来源切换 -->
             <div class="space-y-3">
               <!-- 版本号 -->
-              <div class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
-                <span class="text-sm text-slate-500 dark:text-slate-400">版本</span>
-                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ displayApp?.version || "-" }}</span>
+              <div
+                class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50"
+              >
+                <span class="text-sm text-slate-500 dark:text-slate-400"
+                  >版本</span
+                >
+                <span
+                  class="text-sm font-semibold text-slate-800 dark:text-slate-200"
+                  >{{ displayApp?.version || "-" }}</span
+                >
               </div>
 
               <!-- 应用来源切换 -->
-              <div class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
-                <span class="text-sm text-slate-500 dark:text-slate-400">来源</span>
+              <div
+                class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50"
+              >
+                <span class="text-sm text-slate-500 dark:text-slate-400"
+                  >来源</span
+                >
                 <div
                   v-if="app?.isMerged"
                   class="flex gap-1 overflow-hidden rounded-lg shadow-sm border border-slate-200 dark:border-slate-700"
@@ -110,9 +121,17 @@
               </div>
 
               <!-- 下载量 -->
-              <div v-if="downloadCount" class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
-                <span class="text-sm text-slate-500 dark:text-slate-400">下载量</span>
-                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ downloadCount }}</span>
+              <div
+                v-if="downloadCount"
+                class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50"
+              >
+                <span class="text-sm text-slate-500 dark:text-slate-400"
+                  >下载量</span
+                >
+                <span
+                  class="text-sm font-semibold text-slate-800 dark:text-slate-200"
+                  >{{ downloadCount }}</span
+                >
               </div>
             </div>
 
@@ -163,55 +182,79 @@
             </div>
 
             <!-- 其他元信息 -->
-            <div class="space-y-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60" @click="showAllMetaData">
+            <div
+              class="space-y-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60"
+              @click="showAllMetaData"
+            >
               <div
                 v-if="displayApp?.category"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">分类</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.category }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]"
+                  >{{ displayApp.category }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.author"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">作者</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.author }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]"
+                  >{{ displayApp.author }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.contributor"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">贡献者</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.contributor }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]"
+                  >{{ displayApp.contributor }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.size"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">大小</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ displayApp.size }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >{{ displayApp.size }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.update"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">更新</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ displayApp.update }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >{{ displayApp.update }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.website"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">网站</span>
-                <span class="text-xs font-medium text-brand truncate max-w-[140px]">{{ displayApp.website }}</span>
+                <span
+                  class="text-xs font-medium text-brand truncate max-w-[140px]"
+                  >{{ displayApp.website }}</span
+                >
               </div>
               <div
                 v-if="displayApp?.tags"
                 class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
               >
                 <span class="text-xs text-slate-400">标签</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.tags }}</span>
+                <span
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]"
+                  >{{ displayApp.tags }}</span
+                >
               </div>
             </div>
           </div>
@@ -223,7 +266,9 @@
               v-if="displayApp?.more && displayApp.more.trim() !== ''"
               class="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-5 dark:border-slate-800/60 dark:bg-slate-800/30"
             >
-              <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <h3
+                class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2"
+              >
                 <i class="fas fa-info-circle text-slate-400"></i>
                 应用详情
               </h3>
@@ -241,7 +286,9 @@
 
             <!-- 截图展示 -->
             <div v-if="screenshots.length">
-              <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+              <h3
+                class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2"
+              >
                 <i class="fas fa-images text-slate-400"></i>
                 应用截图
               </h3>
@@ -295,53 +342,92 @@
         >
           <i class="fas fa-xmark"></i>
         </button>
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 pr-8">
+        <h3
+          class="text-lg font-semibold text-slate-900 dark:text-white mb-4 pr-8"
+        >
           应用信息
         </h3>
-        <div class="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 dark:bg-slate-900/50 space-y-3">
+        <div
+          class="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 dark:bg-slate-900/50 space-y-3"
+        >
           <div v-if="displayApp?.name" class="flex justify-between">
             <span class="text-sm text-slate-500">应用名称</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.name }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all"
+              >{{ displayApp.name }}</span
+            >
           </div>
           <div v-if="displayApp?.pkgname" class="flex justify-between">
             <span class="text-sm text-slate-500">包名</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.pkgname }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all"
+              >{{ displayApp.pkgname }}</span
+            >
           </div>
           <div v-if="displayApp?.version" class="flex justify-between">
             <span class="text-sm text-slate-500">版本</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.version }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >{{ displayApp.version }}</span
+            >
           </div>
           <div v-if="displayApp?.category" class="flex justify-between">
             <span class="text-sm text-slate-500">分类</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.category }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >{{ displayApp.category }}</span
+            >
           </div>
           <div v-if="displayApp?.author" class="flex justify-between">
             <span class="text-sm text-slate-500">作者</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.author }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all"
+              >{{ displayApp.author }}</span
+            >
           </div>
           <div v-if="displayApp?.contributor" class="flex justify-between">
             <span class="text-sm text-slate-500">贡献者</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.contributor }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all"
+              >{{ displayApp.contributor }}</span
+            >
           </div>
           <div v-if="displayApp?.size" class="flex justify-between">
             <span class="text-sm text-slate-500">大小</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.size }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >{{ displayApp.size }}</span
+            >
           </div>
           <div v-if="displayApp?.update" class="flex justify-between">
             <span class="text-sm text-slate-500">更新时间</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.update }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >{{ displayApp.update }}</span
+            >
           </div>
           <div v-if="displayApp?.website" class="flex justify-between">
             <span class="text-sm text-slate-500">网站</span>
-            <a :href="displayApp.website" target="_blank" class="text-sm font-medium text-brand hover:underline text-right max-w-[60%] break-all">{{ displayApp.website }}</a>
+            <a
+              :href="displayApp.website"
+              target="_blank"
+              class="text-sm font-medium text-brand hover:underline text-right max-w-[60%] break-all"
+              >{{ displayApp.website }}</a
+            >
           </div>
           <div v-if="displayApp?.tags" class="flex justify-between">
             <span class="text-sm text-slate-500">标签</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.tags }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all"
+              >{{ displayApp.tags }}</span
+            >
           </div>
           <div v-if="displayApp?.origin" class="flex justify-between">
             <span class="text-sm text-slate-500">来源</span>
-            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.origin === 'spark' ? 'Spark' : 'APM' }}</span>
+            <span
+              class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >{{ displayApp.origin === "spark" ? "Spark" : "APM" }}</span
+            >
           </div>
         </div>
       </div>
@@ -525,5 +611,3 @@ const hideImage = (e: Event) => {
   (e.target as HTMLElement).style.display = "none";
 };
 </script>
-
-
