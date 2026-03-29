@@ -51,6 +51,7 @@
             :lists="homeLists"
             :loading="homeLoading"
             :error="homeError"
+            :store-filter="storeFilter"
             @open-detail="openDetail"
           />
         </template>
@@ -378,6 +379,7 @@ const toggleTheme = () => {
 const selectCategory = (category: string) => {
   activeCategory.value = category;
   isSidebarOpen.value = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
   if (
     category === "home" &&
     homeLinks.value.length === 0 &&

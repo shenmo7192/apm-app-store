@@ -17,6 +17,12 @@ if [ "$IS_ACE_ENV" = "1" ]; then
     ARGS="$ARGS --no-apm"
 fi
 
+# 检查是否存在 dpkg 指令
+if ! command -v dpkg >/dev/null 2>&1; then
+    echo "未检测到 dpkg 指令"
+    ARGS="$ARGS --no-spark"
+fi
+
 # 注意：已移除原先针对 arm64 + wayland 添加 --disable-gpu 的逻辑，
 # 现在 arm64 设备无论是否使用 wayland 均不再添加此参数。
 

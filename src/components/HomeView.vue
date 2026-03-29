@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6">
     <!-- 初始加载状态 - 只有在完全没有数据时显示 -->
     <div
       v-if="loading && links.length === 0 && lists.length === 0"
@@ -14,22 +14,57 @@
     >
       {{ error }}
     </div>
+    <!-- 无数据时显示欢迎信息 -->
+    <div
+      v-else-if="links.length === 0 && lists.length === 0"
+      class="flex flex-col items-center justify-center py-20 text-center"
+    >
+      <img
+        v-if="storeFilter === 'apm'"
+        src="../assets/imgs/amber-pm-logo.png"
+        alt="Amber PM"
+        class="h-32 w-32 mb-6 opacity-90 object-contain"
+      />
+      <img
+        v-else
+        src="../assets/imgs/spark-store.svg"
+        alt="星火应用商店"
+        class="h-32 w-32 mb-6 opacity-90"
+      />
+      <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+        {{ storeFilter === 'apm' ? '欢迎来到星火应用商店 (Amber PM)' : '欢迎来到星火应用商店' }}
+      </h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        {{ storeFilter === 'apm' ? '探索丰富的应用，发现更多精彩内容' : '探索丰富的应用，发现更多精彩内容' }}
+      </p>
+    </div>
     <!-- 有数据就立即展示，图片逐步加载 -->
     <div v-else>
+      <!-- 左上角欢迎语 -->
+      <div class="mb-4">
+        <h1 class="text-xl font-bold text-slate-800 dark:text-slate-200">
+          {{ storeFilter === 'apm' ? '欢迎来到星火应用商店 (Amber PM)' : '欢迎来到星火应用商店' }}
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          探索丰富的应用，发现更多精彩内容
+        </p>
+      </div>
+
       <!-- Links 区域 -->
-      <div v-if="links.length > 0" class="grid gap-4 auto-fit-grid">
+      <div v-if="links.length > 0" class="grid gap-5 auto-fit-grid">
         <a
           v-for="link in links"
           :key="link.url + link.name"
           :href="link.type === '_blank' ? undefined : link.url"
           @click.prevent="onLinkClick(link)"
-          class="flex flex-col items-start gap-2 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm transition hover:shadow-lg dark:border-slate-800/70 dark:bg-slate-900/90"
+          class="group block overflow-hidden rounded-xl transition-transform duration-300 hover:scale-[1.02]"
           :title="link.more as string"
         >
-          <div class="h-20 w-full flex items-center justify-center bg-slate-100/50 dark:bg-slate-800/50 rounded-xl overflow-hidden">
+          <!-- 图片区域 - 850:400 比例 -->
+          <div class="relative w-full aspect-[850/400] overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
             <img
               :src="computedImgUrl(link)"
-              class="h-full w-full object-contain"
+              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
               @load="onImageLoad(link.url + link.name)"
               @error="onImageError(link.url + link.name)"
@@ -40,14 +75,17 @@
               v-if="!imageLoaded[link.url + link.name]"
               class="absolute inset-0 flex items-center justify-center"
             >
-              <div class="h-8 w-8 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+              <div class="h-10 w-10 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
             </div>
           </div>
-          <div class="text-base font-semibold text-slate-900 dark:text-white">
-            {{ link.name }}
-          </div>
-          <div class="text-sm text-slate-500 dark:text-slate-400">
-            {{ link.more }}
+          <!-- 文字信息区域 -->
+          <div class="mt-3 px-1">
+            <div class="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand dark:group-hover:text-brand transition-colors">
+              {{ link.name }}
+            </div>
+            <div class="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+              {{ link.more }}
+            </div>
           </div>
         </a>
       </div>
@@ -60,7 +98,7 @@
               {{ section.title }}
             </h3>
           </div>
-          <div class="mt-3 grid gap-4 auto-fit-grid">
+          <div class="mt-3 grid gap-4 app-grid">
             <AppCard
               v-for="app in section.apps"
               :key="app.pkgname"
@@ -85,6 +123,7 @@ defineProps<{
   lists: HomeList[];
   loading: boolean;
   error: string;
+  storeFilter?: "spark" | "apm" | "both";
 }>();
 
 defineEmits<{
@@ -122,14 +161,29 @@ const onLinkClick = (link: HomeLink) => {
 <style scoped></style>
 
 <style scoped>
+/* Link 卡片网格 - 固定最小宽度 180px */
 .auto-fit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+/* 小屏幕 - 最小宽度减小 */
+@media (max-width: 640px) {
+  .auto-fit-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+/* 应用卡片网格 - 保持原来的样式 */
+.app-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-/* slight gap tuning for small screens */
 @media (max-width: 640px) {
-  .auto-fit-grid {
+  .app-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 }

@@ -14,40 +14,69 @@
       @click.self="closeModal"
     >
       <div
-        class="modal-panel relative w-full max-w-4xl max-h-[85vh] overflow-y-auto scrollbar-nowidth rounded-3xl border border-white/10 bg-white/95 p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        class="modal-panel relative w-full max-w-5xl max-h-[85vh] overflow-y-auto scrollbar-nowidth rounded-3xl border border-white/10 bg-white/95 px-6 pb-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
       >
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
-          <div class="flex flex-1 items-center gap-4">
-            <div
-              class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-slate-100 to-slate-200 shadow-inner dark:from-slate-800 dark:to-slate-700"
-            >
-              <img
-                v-if="app"
-                :src="iconPath"
-                alt="icon"
-                class="h-full w-full object-cover transition-opacity duration-300"
-                :class="isIconLoaded ? 'opacity-100' : 'opacity-0'"
-                loading="lazy"
-                @load="isIconLoaded = true"
-              />
+        <!-- 返回按钮 - sticky定位在模态框内部左上角，滚动时始终可见 -->
+        <button
+          type="button"
+          class="sticky top-2 left-0 z-10 inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/90 px-4 py-2 text-sm font-medium text-slate-600 shadow-lg backdrop-blur-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 mt-4"
+          @click="closeModal"
+          aria-label="返回"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>返回</span>
+        </button>
+
+        <!-- 主布局：左侧信息 + 右侧内容 -->
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- 左侧：图标、版本、来源、按钮、元信息 -->
+          <div class="w-full lg:w-72 flex-shrink-0 space-y-5">
+            <!-- 应用图标和名称 -->
+            <div class="text-center">
+              <div
+                class="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-b from-slate-100 to-slate-200 shadow-lg dark:from-slate-800 dark:to-slate-700"
+              >
+                <img
+                  v-if="app"
+                  :src="iconPath"
+                  alt="icon"
+                  class="h-full w-full object-cover transition-opacity duration-300"
+                  :class="isIconLoaded ? 'opacity-100' : 'opacity-0'"
+                  loading="lazy"
+                  @load="isIconLoaded = true"
+                />
+              </div>
+              <h2 class="mt-4 text-xl font-bold text-slate-900 dark:text-white">
+                {{ displayApp?.name || "" }}
+              </h2>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {{ displayApp?.pkgname || "" }}
+              </p>
             </div>
-            <div class="space-y-1">
-              <div class="flex items-center gap-3">
-                <p class="text-2xl font-bold text-slate-900 dark:text-white">
-                  {{ displayApp?.name || "" }}
-                </p>
+
+            <!-- 版本号和来源切换 -->
+            <div class="space-y-3">
+              <!-- 版本号 -->
+              <div class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
+                <span class="text-sm text-slate-500 dark:text-slate-400">版本</span>
+                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ displayApp?.version || "-" }}</span>
+              </div>
+
+              <!-- 应用来源切换 -->
+              <div class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
+                <span class="text-sm text-slate-500 dark:text-slate-400">来源</span>
                 <div
                   v-if="app?.isMerged"
-                  class="flex gap-1 overflow-hidden rounded-md shadow-sm border border-slate-200 dark:border-slate-700 font-medium ml-1"
+                  class="flex gap-1 overflow-hidden rounded-lg shadow-sm border border-slate-200 dark:border-slate-700"
                 >
                   <button
                     v-if="app.sparkApp"
                     type="button"
-                    class="px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors"
+                    class="px-3 py-1 text-xs font-medium uppercase tracking-wider transition-colors"
                     :class="
                       viewingOrigin === 'spark'
                         ? 'bg-orange-500 text-white'
-                        : 'bg-slate-100/50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                     "
                     @click="viewingOrigin = 'spark'"
                   >
@@ -56,11 +85,11 @@
                   <button
                     v-if="app.apmApp"
                     type="button"
-                    class="px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors"
+                    class="px-3 py-1 text-xs font-medium uppercase tracking-wider transition-colors"
                     :class="
                       viewingOrigin === 'apm'
                         ? 'bg-blue-500 text-white'
-                        : 'bg-slate-100/50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                     "
                     @click="viewingOrigin = 'apm'"
                   >
@@ -70,7 +99,7 @@
                 <span
                   v-else-if="displayApp"
                   :class="[
-                    'rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm',
+                    'rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wider',
                     displayApp.origin === 'spark'
                       ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
                       : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
@@ -79,175 +108,241 @@
                   {{ displayApp.origin === "spark" ? "Spark" : "APM" }}
                 </span>
               </div>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                {{ displayApp?.pkgname || "" }} ·
-                {{ displayApp?.version || "" }}
-                <span v-if="downloadCount"> · 下载量：{{ downloadCount }}</span>
-              </p>
+
+              <!-- 下载量 -->
+              <div v-if="downloadCount" class="flex items-center justify-between rounded-2xl border border-slate-200/60 bg-slate-50/50 px-4 py-3 dark:border-slate-800/60 dark:bg-slate-800/50">
+                <span class="text-sm text-slate-500 dark:text-slate-400">下载量</span>
+                <span class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ downloadCount }}</span>
+              </div>
+            </div>
+
+            <!-- 功能按钮 -->
+            <div class="space-y-2">
+              <button
+                v-if="!isinstalled"
+                type="button"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r px-4 py-3 text-sm font-semibold text-white shadow-lg disabled:opacity-40 transition hover:-translate-y-0.5"
+                :class="
+                  installFeedback
+                    ? 'from-emerald-500 to-emerald-600'
+                    : 'from-brand to-brand-dark'
+                "
+                @click="handleInstall"
+                :disabled="installFeedback || isOtherVersionInstalled"
+              >
+                <i
+                  class="fas"
+                  :class="installFeedback ? 'fa-check' : 'fa-download'"
+                ></i>
+                <span>{{ installBtnText }}</span>
+              </button>
+              <template v-else>
+                <button
+                  type="button"
+                  class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
+                  @click="
+                    emit(
+                      'open-app',
+                      displayApp?.pkgname || '',
+                      displayApp?.origin,
+                    )
+                  "
+                >
+                  <i class="fas fa-external-link-alt"></i>
+                  <span>打开</span>
+                </button>
+                <button
+                  type="button"
+                  class="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 disabled:opacity-40 transition hover:-translate-y-0.5"
+                  @click="handleRemove"
+                >
+                  <i class="fas fa-trash"></i>
+                  <span>卸载</span>
+                </button>
+              </template>
+            </div>
+
+            <!-- 其他元信息 -->
+            <div class="space-y-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/60" @click="showAllMetaData">
+              <div
+                v-if="displayApp?.category"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">分类</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.category }}</span>
+              </div>
+              <div
+                v-if="displayApp?.author"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">作者</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.author }}</span>
+              </div>
+              <div
+                v-if="displayApp?.contributor"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">贡献者</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.contributor }}</span>
+              </div>
+              <div
+                v-if="displayApp?.size"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">大小</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ displayApp.size }}</span>
+              </div>
+              <div
+                v-if="displayApp?.update"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">更新</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ displayApp.update }}</span>
+              </div>
+              <div
+                v-if="displayApp?.website"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">网站</span>
+                <span class="text-xs font-medium text-brand truncate max-w-[140px]">{{ displayApp.website }}</span>
+              </div>
+              <div
+                v-if="displayApp?.tags"
+                class="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -mx-1 transition-colors"
+              >
+                <span class="text-xs text-slate-400">标签</span>
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{{ displayApp.tags }}</span>
+              </div>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2 lg:ml-auto">
-            <button
-              v-if="!isinstalled"
-              type="button"
-              class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r px-4 py-2 text-sm font-semibold text-white shadow-lg disabled:opacity-40 transition hover:-translate-y-0.5"
-              :class="
-                installFeedback
-                  ? 'from-emerald-500 to-emerald-600'
-                  : 'from-brand to-brand-dark'
-              "
-              @click="handleInstall"
-              :disabled="installFeedback || isOtherVersionInstalled"
+
+          <!-- 右侧：应用详情（上）+ 截图（下） -->
+          <div class="flex-1 min-w-0 space-y-5">
+            <!-- 应用详情 -->
+            <div
+              v-if="displayApp?.more && displayApp.more.trim() !== ''"
+              class="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-5 dark:border-slate-800/60 dark:bg-slate-800/30"
             >
-              <i
-                class="fas"
-                :class="installFeedback ? 'fa-check' : 'fa-download'"
-              ></i>
-              <span>{{ installBtnText }}</span>
-            </button>
-            <template v-else>
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5"
-                @click="
-                  emit(
-                    'open-app',
-                    displayApp?.pkgname || '',
-                    displayApp?.origin,
-                  )
-                "
-              >
-                <i class="fas fa-external-link-alt"></i>
-                <span>打开</span>
-              </button>
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 disabled:opacity-40 transition hover:-translate-y-0.5"
-                @click="handleRemove"
-              >
-                <i class="fas fa-trash"></i>
-                <span>卸载</span>
-              </button>
-            </template>
-            <button
-              type="button"
-              class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/70 text-slate-500 transition hover:text-slate-900 dark:border-slate-700"
-              @click="closeModal"
-              aria-label="关闭"
+              <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <i class="fas fa-info-circle text-slate-400"></i>
+                应用详情
+              </h3>
+              <div
+                class="max-h-48 overflow-y-auto text-sm leading-relaxed text-slate-600 dark:text-slate-300 space-y-2"
+                v-html="displayApp.more.replace(/\n/g, '<br>')"
+              ></div>
+            </div>
+            <div
+              v-else
+              class="rounded-2xl border border-slate-200/60 bg-slate-50/30 p-8 text-center dark:border-slate-800/60 dark:bg-slate-800/20"
             >
-              <i class="fas fa-xmark"></i>
-            </button>
+              <p class="text-sm text-slate-400">暂无应用详情</p>
+            </div>
+
+            <!-- 截图展示 -->
+            <div v-if="screenshots.length">
+              <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <i class="fas fa-images text-slate-400"></i>
+                应用截图
+              </h3>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <img
+                  v-for="(screen, index) in screenshots"
+                  :key="index"
+                  :src="screen"
+                  alt="screenshot"
+                  class="h-44 w-full cursor-pointer rounded-2xl border border-slate-200/60 object-cover shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/60"
+                  loading="lazy"
+                  @click="openPreview(index)"
+                  @error="hideImage"
+                />
+              </div>
+            </div>
+            <div
+              v-else
+              class="rounded-2xl border border-slate-200/60 bg-slate-50/30 p-8 text-center dark:border-slate-800/60 dark:bg-slate-800/20"
+            >
+              <p class="text-sm text-slate-400">暂无应用截图</p>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+  </Transition>
 
-        <!-- <div
-          class="mt-4 rounded-2xl border border-slate-200/60 bg-slate-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-300"
+  <!-- 元数据详情弹窗 -->
+  <Transition
+    enter-active-class="duration-200 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="duration-150 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
+  >
+    <div
+      v-if="showMetaModal"
+      class="fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-slate-900/60 p-4"
+      @click.self="closeMetaModal"
+    >
+      <div
+        class="relative w-full max-w-md rounded-2xl border border-white/10 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-800"
+      >
+        <button
+          type="button"
+          class="absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+          @click="closeMetaModal"
+          aria-label="关闭"
         >
-          首次安装 APM 后需要重启系统以在启动器中看到应用入口。可前往
-          <a
-            href="https://gitee.com/amber-ce/amber-pm/releases"
-            target="_blank"
-            class="font-semibold text-brand hover:underline"
-            >APM Releases</a
-          >
-          获取 APM。
-        </div> -->
-
-        <div v-if="screenshots.length" class="mt-6 grid gap-3 sm:grid-cols-2">
-          <img
-            v-for="(screen, index) in screenshots"
-            :key="index"
-            :src="screen"
-            alt="screenshot"
-            class="h-40 w-full cursor-pointer rounded-2xl border border-slate-200/60 object-cover shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-800/60"
-            loading="lazy"
-            @click="openPreview(index)"
-            @error="hideImage"
-          />
-        </div>
-
-        <div class="mt-6 grid gap-4 sm:grid-cols-2">
-          <div
-            v-if="displayApp?.author"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">作者</p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.author }}
-            </p>
+          <i class="fas fa-xmark"></i>
+        </button>
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4 pr-8">
+          应用信息
+        </h3>
+        <div class="max-h-80 overflow-y-auto rounded-xl bg-slate-50 p-4 dark:bg-slate-900/50 space-y-3">
+          <div v-if="displayApp?.name" class="flex justify-between">
+            <span class="text-sm text-slate-500">应用名称</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.name }}</span>
           </div>
-          <div
-            v-if="displayApp?.contributor"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">贡献者</p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.contributor }}
-            </p>
+          <div v-if="displayApp?.pkgname" class="flex justify-between">
+            <span class="text-sm text-slate-500">包名</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.pkgname }}</span>
           </div>
-          <div
-            v-if="displayApp?.size"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">大小</p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.size }}
-            </p>
+          <div v-if="displayApp?.version" class="flex justify-between">
+            <span class="text-sm text-slate-500">版本</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.version }}</span>
           </div>
-          <div
-            v-if="displayApp?.update"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">
-              更新时间
-            </p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.update }}
-            </p>
+          <div v-if="displayApp?.category" class="flex justify-between">
+            <span class="text-sm text-slate-500">分类</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.category }}</span>
           </div>
-          <div
-            v-if="displayApp?.website"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">网站</p>
-            <a
-              :href="displayApp.website"
-              target="_blank"
-              class="text-sm font-medium text-brand hover:underline"
-              >{{ displayApp.website }}</a
-            >
+          <div v-if="displayApp?.author" class="flex justify-between">
+            <span class="text-sm text-slate-500">作者</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.author }}</span>
           </div>
-          <div
-            v-if="displayApp?.version"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">版本</p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.version }}
-            </p>
+          <div v-if="displayApp?.contributor" class="flex justify-between">
+            <span class="text-sm text-slate-500">贡献者</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.contributor }}</span>
           </div>
-          <div
-            v-if="displayApp?.tags"
-            class="rounded-2xl border border-slate-200/60 p-4 dark:border-slate-800/60"
-          >
-            <p class="text-xs uppercase tracking-wide text-slate-400">标签</p>
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ displayApp.tags }}
-            </p>
+          <div v-if="displayApp?.size" class="flex justify-between">
+            <span class="text-sm text-slate-500">大小</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.size }}</span>
           </div>
-        </div>
-
-        <div
-          v-if="displayApp?.more && displayApp.more.trim() !== ''"
-          class="mt-6 space-y-3"
-        >
-          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-            应用详情
-          </h3>
-          <div
-            class="max-h-60 space-y-2 overflow-y-auto rounded-2xl border border-slate-200/60 bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-600 dark:border-slate-800/60 dark:bg-slate-900/60 dark:text-slate-300"
-            v-html="displayApp.more.replace(/\n/g, '<br>')"
-          ></div>
+          <div v-if="displayApp?.update" class="flex justify-between">
+            <span class="text-sm text-slate-500">更新时间</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.update }}</span>
+          </div>
+          <div v-if="displayApp?.website" class="flex justify-between">
+            <span class="text-sm text-slate-500">网站</span>
+            <a :href="displayApp.website" target="_blank" class="text-sm font-medium text-brand hover:underline text-right max-w-[60%] break-all">{{ displayApp.website }}</a>
+          </div>
+          <div v-if="displayApp?.tags" class="flex justify-between">
+            <span class="text-sm text-slate-500">标签</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200 text-right max-w-[60%] break-all">{{ displayApp.tags }}</span>
+          </div>
+          <div v-if="displayApp?.origin" class="flex justify-between">
+            <span class="text-sm text-slate-500">来源</span>
+            <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ displayApp.origin === 'spark' ? 'Spark' : 'APM' }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -285,6 +380,17 @@ const appPkgname = computed(() => props.app?.pkgname);
 const isIconLoaded = ref(false);
 
 const viewingOrigin = ref<"spark" | "apm">("spark");
+
+// 元数据弹窗相关
+const showMetaModal = ref(false);
+
+const showAllMetaData = () => {
+  showMetaModal.value = true;
+};
+
+const closeMetaModal = () => {
+  showMetaModal.value = false;
+};
 
 watch(
   () => props.app,
@@ -419,3 +525,5 @@ const hideImage = (e: Event) => {
   (e.target as HTMLElement).style.display = "none";
 };
 </script>
+
+
