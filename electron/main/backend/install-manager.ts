@@ -309,6 +309,16 @@ ipcMain.on("cancel-install", (event, id) => {
       task.install_process?.kill();
       logger.info(`已取消任务: ${id}`);
 
+      // 删除下载目录
+      if (task.downloadDir && fs.existsSync(task.downloadDir)) {
+        try {
+          fs.rmSync(task.downloadDir, { recursive: true, force: true });
+          logger.info(`已删除下载目录: ${task.downloadDir}`);
+        } catch (err) {
+          logger.error(`删除下载目录失败 ${task.downloadDir}: ${err}`);
+        }
+      }
+
       // 主动发送完成（失败）事件，close 回调会因 cancelled 标志跳过
       task.webContents?.send("install-complete", {
         id,
