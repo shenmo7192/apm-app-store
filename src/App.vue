@@ -59,6 +59,7 @@
           <AppGrid
             :apps="filteredApps"
             :loading="loading"
+            :store-filter="storeFilter"
             @open-detail="openDetail"
           />
         </template>

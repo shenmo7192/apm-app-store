@@ -24,6 +24,7 @@
       v-for="(app, index) in apps"
       :key="index"
       :app="app"
+      :show-origin="storeFilter === 'both'"
       @open-detail="$emit('open-detail', app)"
     />
   </div>
@@ -58,6 +59,7 @@ import type { App } from "../global/typedefinition";
 defineProps<{
   apps: App[];
   loading: boolean;
+  storeFilter?: "spark" | "apm" | "both";
 }>();
 
 defineEmits<{

@@ -21,20 +21,30 @@
         >
           {{ app.name || "" }}
         </div>
-        <!-- 来源标识：支持同时显示多个 -->
+        <!-- 来源标识 -->
         <div class="flex shrink-0 gap-1">
+          <!-- 合并标识：两个来源都有时显示 -->
           <span
-            v-if="showSparkBadge"
-            class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+            v-if="showMergedBadge"
+            class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
           >
-            Spark
+            SPARK/APM
           </span>
-          <span
-            v-if="showApmBadge"
-            class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-          >
-            APM
-          </span>
+          <!-- 单独标识 -->
+          <template v-else>
+            <span
+              v-if="showSparkBadge"
+              class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+            >
+              Spark
+            </span>
+            <span
+              v-if="showApmBadge"
+              class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+            >
+              APM
+            </span>
+          </template>
         </div>
       </div>
       <div class="text-sm text-slate-500 dark:text-slate-400 leading-tight">
@@ -56,9 +66,8 @@ import type { App } from "../global/typedefinition";
 
 const props = defineProps<{
   app: App;
-  // 从外部传入的 Spark/APM 可用性信息
-  sparkAvailable?: boolean;
-  apmAvailable?: boolean;
+  // 是否显示来源标识（仅在混合模式下显示）
+  showOrigin?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -71,20 +80,26 @@ const loadedIcon = ref(
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3C/svg%3E',
 );
 
+// 是否显示合并标识（两个来源都有）
+const showMergedBadge = computed(() => {
+  // 只有在 showOrigin 为 true 且 isMerged 为 true 时才显示合并标识
+  return props.showOrigin === true && props.app.isMerged === true;
+});
+
 // 是否显示 Spark 标识
 const showSparkBadge = computed(() => {
-  // 如果明确指定了 sparkAvailable，使用它
-  if (props.sparkAvailable !== undefined) return props.sparkAvailable;
-  // 否则根据 app 的 origin 或 isMerged 判断
-  return props.app.origin === "spark" || props.app.isMerged === true;
+  // 只有在 showOrigin 为 true 且不是合并状态时才显示单独标识
+  if (props.showOrigin !== true || props.app.isMerged === true) return false;
+  // 根据 app 的 origin 判断
+  return props.app.origin === "spark";
 });
 
 // 是否显示 APM 标识
 const showApmBadge = computed(() => {
-  // 如果明确指定了 apmAvailable，使用它
-  if (props.apmAvailable !== undefined) return props.apmAvailable;
-  // 否则根据 app 的 origin 或 isMerged 判断
-  return props.app.origin === "apm" || props.app.isMerged === true;
+  // 只有在 showOrigin 为 true 且不是合并状态时才显示单独标识
+  if (props.showOrigin !== true || props.app.isMerged === true) return false;
+  // 根据 app 的 origin 判断
+  return props.app.origin === "apm";
 });
 
 const iconPath = computed(() => {
