@@ -834,11 +834,11 @@ const toggleAllUpgrades = () => {
   }));
 };
 
-const upgradeSingleApp = (app: UpdateAppItem) => {
+const upgradeSingleApp = async (app: UpdateAppItem) => {
   if (!app?.pkgname) return;
   const target = apps.value.find((a) => a.pkgname === app.pkgname);
   if (target) {
-    handleUpgrade(target);
+    await handleUpgrade(target);
   } else {
     // If we can't find it in the list (e.g. category not loaded?), use the info we have
     // But handleUpgrade expects App. Let's try to construct minimal App
@@ -861,15 +861,15 @@ const upgradeSingleApp = (app: UpdateAppItem) => {
       origin: "apm", // Default to APM if unknown, or try to guess
       currentStatus: "installed",
     };
-    handleUpgrade(minimalApp);
+    await handleUpgrade(minimalApp);
   }
 };
 
-const upgradeSelectedApps = () => {
+const upgradeSelectedApps = async () => {
   const selectedApps = upgradableApps.value.filter((app) => app.selected);
-  selectedApps.forEach((app) => {
-    upgradeSingleApp(app);
-  });
+  for (const app of selectedApps) {
+    await upgradeSingleApp(app);
+  }
 };
 
 const openInstalledModal = () => {
@@ -945,8 +945,8 @@ const onDetailRemove = (app: App) => {
   requestUninstall(app);
 };
 
-const onDetailInstall = (app: App) => {
-  handleInstall(app);
+const onDetailInstall = async (app: App) => {
+  await handleInstall(app);
 };
 
 const closeUninstallModal = () => {

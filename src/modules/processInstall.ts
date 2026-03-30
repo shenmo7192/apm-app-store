@@ -21,9 +21,24 @@ import axios from "axios";
 let downloadIdCounter = 0;
 const logger = pino({ name: "processInstall.ts" });
 
-export const handleInstall = (appObj?: App) => {
+export const handleInstall = async (appObj?: App) => {
   const targetApp = appObj || currentApp.value;
   if (!targetApp?.pkgname) return;
+
+  // APM 应用：在创建下载任务前检查 APM 是否可用
+  if (targetApp.origin === "apm") {
+    const hasApm = await window.ipcRenderer.invoke("check-apm-available");
+    if (!hasApm) {
+      // 发送事件到主进程显示 APM 安装对话框
+      const { success, cancelled } = await window.ipcRenderer.invoke(
+        "show-apm-install-dialog",
+      );
+      if (!success || cancelled) {
+        // 用户取消或未安装成功，不继续安装应用
+        return;
+      }
+    }
+  }
 
   if (
     downloads.value.find(
@@ -98,8 +113,23 @@ export const handleRetry = (download_: DownloadItem) => {
   window.ipcRenderer.send("queue-install", JSON.stringify(download_));
 };
 
-export const handleUpgrade = (app: App) => {
+export const handleUpgrade = async (app: App) => {
   if (!app.pkgname) return;
+
+  // APM 应用：在创建下载任务前检查 APM 是否可用
+  if (app.origin === "apm") {
+    const hasApm = await window.ipcRenderer.invoke("check-apm-available");
+    if (!hasApm) {
+      // 发送事件到主进程显示 APM 安装对话框
+      const { success, cancelled } = await window.ipcRenderer.invoke(
+        "show-apm-install-dialog",
+      );
+      if (!success || cancelled) {
+        // 用户取消或未安装成功，不继续更新应用
+        return;
+      }
+    }
+  }
 
   if (
     downloads.value.find(

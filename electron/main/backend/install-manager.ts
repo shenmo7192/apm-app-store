@@ -947,6 +947,54 @@ ipcMain.handle("check-apm-available", async () => {
   return await checkApmAvailable();
 });
 
+// 显示 APM 安装对话框（在点击安装按钮时提前检查）
+ipcMain.handle("show-apm-install-dialog", async (event) => {
+  const webContents = event.sender;
+  const win = BrowserWindow.fromWebContents(webContents);
+  const superUserCmd = await checkSuperUserCommand();
+
+  const { response } = await dialog.showMessageBox(win ?? undefined, {
+    type: "question",
+    title: "需要安装 APM",
+    message: "此应用需要使用 APM 安装。",
+    detail:
+      "APM 是星火应用商店的软件包兼容工具，此应用使用星火 APM 提供支持，安装APM后方可安装此应用，是否确认安装？",
+    buttons: ["确认", "取消"],
+    defaultId: 0,
+    cancelId: 1,
+  });
+
+  if (response !== 0) {
+    return { success: false, cancelled: true };
+  }
+
+  const installApmOk = await runInstallApm(superUserCmd);
+  if (!installApmOk) {
+    await dialog.showMessageBox(win ?? undefined, {
+      type: "error",
+      title: "安装失败",
+      message: "安装 APM 失败",
+      detail: "请检查网络或权限后重试",
+      buttons: ["确定"],
+      defaultId: 0,
+    });
+    return { success: false, cancelled: false };
+  }
+
+  // 安装APM成功，提示用户已安装成功，需要重启后方可展示应用
+  await dialog.showMessageBox(win ?? undefined, {
+    type: "info",
+    title: "APM 安装成功",
+    message: "恭喜您，APM 已成功安装",
+    detail:
+      "恭喜您，APM 已成功安装！\n首次安装APM后，需要重启电脑后方可在启动器展示应用。您可在应用安装完毕后择机重启电脑\n若您需要立即使用应用，可在应用安装后先在应用商店中打开您的应用。",
+    buttons: ["确定"],
+    defaultId: 0,
+  });
+
+  return { success: true, cancelled: false };
+});
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ipcMain.handle("uninstall-installed", async (_event, payload: any) => {
   const pkgname = typeof payload === "string" ? payload : payload.pkgname;
