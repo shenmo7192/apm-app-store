@@ -116,9 +116,11 @@
       :apps="installedApps"
       :loading="installedLoading"
       :error="installedError"
+      :active-origin="activeInstalledOrigin"
       @close="closeInstalledModal"
       @refresh="refreshInstalledApps"
       @uninstall="uninstallInstalledApp"
+      @switch-origin="handleSwitchOrigin"
     />
 
     <UpdateAppsModal
@@ -240,6 +242,7 @@ const loading = ref(true);
 const showDownloadDetailModal = ref(false);
 const currentDownload: Ref<DownloadItem | null> = ref(null);
 const showInstalledModal = ref(false);
+const activeInstalledOrigin = ref<"apm" | "spark">("apm");
 const installedApps = ref<App[]>([]);
 const installedLoading = ref(false);
 const installedError = ref("");
@@ -881,11 +884,17 @@ const closeInstalledModal = () => {
   showInstalledModal.value = false;
 };
 
+const handleSwitchOrigin = (origin: "apm" | "spark") => {
+  activeInstalledOrigin.value = origin;
+  refreshInstalledApps();
+};
+
 const refreshInstalledApps = async () => {
   installedLoading.value = true;
   installedError.value = "";
   try {
-    const result = await window.ipcRenderer.invoke("list-installed");
+    const origin = activeInstalledOrigin.value;
+    const result = await window.ipcRenderer.invoke("list-installed", origin);
     if (!result?.success) {
       installedApps.value = [];
       installedError.value = result?.message || "读取已安装应用失败";
@@ -894,7 +903,16 @@ const refreshInstalledApps = async () => {
 
     installedApps.value = [];
     for (const app of result.apps) {
-      let appInfo = apps.value.find((a) => a.pkgname === app.pkgname);
+      // Find matching remote app to enrich data. We look exactly for that origin.
+      let appInfo = apps.value.find(
+        (a) => a.pkgname === app.pkgname && a.origin === origin,
+      );
+
+      if (origin === "spark" && !appInfo) {
+        // Only show Spark packages that exist in the App Store catalogue
+        continue;
+      }
+
       if (appInfo) {
         appInfo.flags = app.flags;
         appInfo.arch = app.arch;
@@ -1298,7 +1316,9 @@ onMounted(async () => {
         } else {
           // 如果找不到应用，回退到搜索模式
           searchQuery.value = data.pkgname;
-          logger.warn(`Deep link: app ${data.pkgname} not found, fallback to search`);
+          logger.warn(
+            `Deep link: app ${data.pkgname} not found, fallback to search`,
+          );
         }
       };
 

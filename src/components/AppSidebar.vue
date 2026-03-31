@@ -95,7 +95,7 @@
         @click="$emit('list')"
       >
         <i class="fas fa-download"></i>
-        <span>APM 应用管理</span>
+        <span>应用管理</span>
       </button>
       <button
         type="button"

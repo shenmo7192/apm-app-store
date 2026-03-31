@@ -791,139 +791,177 @@ ipcMain.on("remove-installed", async (_event, payload) => {
   });
 });
 
-ipcMain.handle("list-installed", async () => {
-  const apmBasePath = "/var/lib/apm/apm/files/ace-env/var/lib/apm";
+ipcMain.handle(
+  "list-installed",
+  async (_event, origin: "apm" | "spark" = "apm") => {
+    const apmBasePath = "/var/lib/apm/apm/files/ace-env/var/lib/apm";
 
-  try {
-    // 使用 apm list --installed 获取所有已安装应用
-    const { code, stdout } = await runCommandCapture("apm", [
-      "list",
-      "--installed",
-    ]);
+    try {
+      const installedApps: Array<{
+        pkgname: string;
+        name: string;
+        version: string;
+        arch: string;
+        flags: string;
+        origin: "spark" | "apm";
+        icon?: string;
+        isDependency: boolean;
+      }> = [];
 
-    if (code !== 0) {
-      logger.warn(`Failed to list installed packages: ${stdout}`);
+      if (origin === "spark") {
+        const { code, stdout } = await runCommandCapture("dpkg-query", [
+          "-W",
+          "-f=${Package} ${Version} ${Architecture}\\n",
+        ]);
+
+        if (code !== 0) {
+          logger.warn(`Failed to list installed packages: ${stdout}`);
+          return {
+            success: false,
+            message: "Failed to list installed packages",
+            apps: [],
+          };
+        }
+
+        const lines = stdout.split("\n");
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          const parts = trimmed.split(" ");
+          if (parts.length >= 3) {
+            installedApps.push({
+              pkgname: parts[0],
+              name: parts[0],
+              version: parts[1],
+              arch: parts[2],
+              flags: "[installed]",
+              origin: "spark",
+              isDependency: false,
+            });
+          }
+        }
+        return { success: true, apps: installedApps };
+      }
+
+      // 使用 apm list --installed 获取所有已安装应用
+      const { code, stdout } = await runCommandCapture("apm", [
+        "list",
+        "--installed",
+      ]);
+
+      if (code !== 0) {
+        logger.warn(`Failed to list installed packages: ${stdout}`);
+        return {
+          success: false,
+          message: "Failed to list installed packages",
+          apps: [],
+        };
+      }
+
+      const cleanStdout = stdout.replace(
+        // eslint-disable-next-line no-control-regex
+        /\x1b\[[0-9;]*m/g,
+        "",
+      );
+      const lines = cleanStdout.split("\n");
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (
+          !trimmed ||
+          trimmed.startsWith("Listing") ||
+          trimmed.startsWith("[INFO]") ||
+          trimmed.startsWith("警告")
+        )
+          continue;
+
+        // 解析格式: pkgname/repo,section version arch [flags] 或 pkgname/repo version arch [flags]
+        // 注意: repo后面可能有逗号和section，也可能没有
+        const match = trimmed.match(
+          /^(\S+)\/\S+(?:,\S+)?\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
+        );
+        if (!match) {
+          logger.debug(`Failed to parse line: ${trimmed}`);
+          continue;
+        }
+
+        const [, pkgname, version, arch, flags] = match;
+
+        // 从桌面文件获取应用名称和图标
+        let appName = pkgname;
+        let icon = "";
+        const pkgPath = path.join(apmBasePath, pkgname);
+        const entriesPath = path.join(pkgPath, "entries", "applications");
+        const hasEntries = fs.existsSync(entriesPath);
+
+        if (hasEntries) {
+          try {
+            const desktopFiles = fs.readdirSync(entriesPath);
+            logger.debug(
+              `Found desktop files for ${pkgname}: ${desktopFiles.join(", ")}`,
+            );
+            for (const file of desktopFiles) {
+              if (file.endsWith(".desktop")) {
+                const desktopPath = path.join(entriesPath, file);
+                logger.debug(`Reading desktop file: ${desktopPath}`);
+                const content = fs.readFileSync(desktopPath, "utf-8");
+                const nameMatch = content.match(/^Name=(.+)$/m);
+                const iconMatch = content.match(/^Icon=(.+)$/m);
+                if (nameMatch) appName = nameMatch[1].trim();
+                if (iconMatch) icon = iconMatch[1].trim();
+                logger.debug(
+                  `Parsed desktop file for ${pkgname}: name=${appName}, icon=${icon}`,
+                );
+                break;
+              }
+            }
+          } catch (e) {
+            logger.warn(`Failed to read desktop file for ${pkgname}: ${e}`);
+          }
+        } else {
+          logger.debug(`No entries path for ${pkgname}: ${entriesPath}`);
+        }
+
+        installedApps.push({
+          pkgname,
+          name: appName,
+          version,
+          arch,
+          flags,
+          origin: "apm",
+          icon: icon || undefined,
+          isDependency: !hasEntries,
+        });
+      }
+
+      installedApps.sort((a, b) => {
+        const getOrder = (app: { pkgname: string; isDependency: boolean }) => {
+          if (app.isDependency) return 2;
+          if (app.pkgname.startsWith("amber-pm")) return 1;
+          return 0;
+        };
+
+        const aOrder = getOrder(a);
+        const bOrder = getOrder(b);
+
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.pkgname.localeCompare(b.pkgname);
+      });
+
+      logger.info(`Found ${installedApps.length} installed APM apps`);
+      return { success: true, apps: installedApps };
+    } catch (error) {
+      logger.error(
+        `list-installed failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return {
         success: false,
-        message: "Failed to list installed packages",
+        message: error instanceof Error ? error.message : String(error),
         apps: [],
       };
     }
-
-    const installedApps: Array<{
-      pkgname: string;
-      name: string;
-      version: string;
-      arch: string;
-      flags: string;
-      origin: "spark" | "apm";
-      icon?: string;
-      isDependency: boolean;
-    }> = [];
-
-    const cleanStdout = stdout.replace(
-      // eslint-disable-next-line no-control-regex
-      /\x1b\[[0-9;]*m/g,
-      "",
-    );
-    const lines = cleanStdout.split("\n");
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (
-        !trimmed ||
-        trimmed.startsWith("Listing") ||
-        trimmed.startsWith("[INFO]") ||
-        trimmed.startsWith("警告")
-      )
-        continue;
-
-      // 解析格式: pkgname/repo,section version arch [flags] 或 pkgname/repo version arch [flags]
-      // 注意: repo后面可能有逗号和section，也可能没有
-      const match = trimmed.match(
-        /^(\S+)\/\S+(?:,\S+)?\s+(\S+)\s+(\S+)\s+\[(.+)\]$/,
-      );
-      if (!match) {
-        logger.debug(`Failed to parse line: ${trimmed}`);
-        continue;
-      }
-
-      const [, pkgname, version, arch, flags] = match;
-
-      // 从桌面文件获取应用名称和图标
-      let appName = pkgname;
-      let icon = "";
-      const pkgPath = path.join(apmBasePath, pkgname);
-      const entriesPath = path.join(pkgPath, "entries", "applications");
-      const hasEntries = fs.existsSync(entriesPath);
-
-      if (hasEntries) {
-        try {
-          const desktopFiles = fs.readdirSync(entriesPath);
-          logger.debug(
-            `Found desktop files for ${pkgname}: ${desktopFiles.join(", ")}`,
-          );
-          for (const file of desktopFiles) {
-            if (file.endsWith(".desktop")) {
-              const desktopPath = path.join(entriesPath, file);
-              logger.debug(`Reading desktop file: ${desktopPath}`);
-              const content = fs.readFileSync(desktopPath, "utf-8");
-              const nameMatch = content.match(/^Name=(.+)$/m);
-              const iconMatch = content.match(/^Icon=(.+)$/m);
-              if (nameMatch) appName = nameMatch[1].trim();
-              if (iconMatch) icon = iconMatch[1].trim();
-              logger.debug(
-                `Parsed desktop file for ${pkgname}: name=${appName}, icon=${icon}`,
-              );
-              break;
-            }
-          }
-        } catch (e) {
-          logger.warn(`Failed to read desktop file for ${pkgname}: ${e}`);
-        }
-      } else {
-        logger.debug(`No entries path for ${pkgname}: ${entriesPath}`);
-      }
-
-      installedApps.push({
-        pkgname,
-        name: appName,
-        version,
-        arch,
-        flags,
-        origin: "apm",
-        icon: icon || undefined,
-        isDependency: !hasEntries,
-      });
-    }
-
-    installedApps.sort((a, b) => {
-      const getOrder = (app: { pkgname: string; isDependency: boolean }) => {
-        if (app.isDependency) return 2;
-        if (app.pkgname.startsWith("amber-pm")) return 1;
-        return 0;
-      };
-
-      const aOrder = getOrder(a);
-      const bOrder = getOrder(b);
-
-      if (aOrder !== bOrder) return aOrder - bOrder;
-      return a.pkgname.localeCompare(b.pkgname);
-    });
-
-    logger.info(`Found ${installedApps.length} installed APM apps`);
-    return { success: true, apps: installedApps };
-  } catch (error) {
-    logger.error(
-      `list-installed failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : String(error),
-      apps: [],
-    };
-  }
-});
+  },
+);
 
 ipcMain.handle("list-upgradable", async () => {
   const { code, stdout, stderr } = await runCommandCapture("apm", [

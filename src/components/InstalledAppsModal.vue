@@ -23,10 +23,38 @@
               已安装应用
             </p>
             <p class="text-sm text-slate-500 dark:text-slate-400">
-              来自本机 APM 安装列表
+              管理本机安装的应用程序
             </p>
           </div>
           <div class="flex items-center gap-3">
+            <div
+              class="flex items-center rounded-2xl border border-slate-200/70 p-1 dark:border-slate-800/70"
+            >
+              <button
+                type="button"
+                class="rounded-xl px-4 py-1.5 text-sm font-semibold transition"
+                :class="
+                  activeOrigin === 'apm'
+                    ? 'bg-brand/10 text-brand dark:bg-brand/15'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                "
+                @click="$emit('switch-origin', 'apm')"
+              >
+                APM 软件
+              </button>
+              <button
+                type="button"
+                class="rounded-xl px-4 py-1.5 text-sm font-semibold transition"
+                :class="
+                  activeOrigin === 'spark'
+                    ? 'bg-brand/10 text-brand dark:bg-brand/15'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                "
+                @click="$emit('switch-origin', 'spark')"
+              >
+                Spark 软件
+              </button>
+            </div>
             <button
               type="button"
               class="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-200"
@@ -137,11 +165,13 @@ defineProps<{
   apps: App[];
   loading: boolean;
   error: string;
+  activeOrigin: "apm" | "spark";
 }>();
 
 defineEmits<{
   (e: "close"): void;
   (e: "refresh"): void;
   (e: "uninstall", app: App): void;
+  (e: "switch-origin", origin: "apm" | "spark"): void;
 }>();
 </script>
