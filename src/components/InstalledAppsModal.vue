@@ -104,16 +104,19 @@
             >
               <div class="flex items-center gap-3">
                 <div
-                  v-if="app.icons"
                   class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800"
                 >
                   <img
-                    v-if="app.icons.startsWith('/')"
-                    :src="`file://${app.icons}`"
+                    v-show="!iconErrors[app.pkgname] && getIconUrl(app)"
+                    :src="getIconUrl(app)"
                     class="h-8 w-8 object-contain"
                     alt=""
+                    @error="iconErrors[app.pkgname] = true"
                   />
-                  <i v-else class="fas fa-cube text-xl text-slate-400"></i>
+                  <i
+                    v-show="iconErrors[app.pkgname] || !getIconUrl(app)"
+                    class="fas fa-cube text-xl text-slate-400"
+                  ></i>
                 </div>
                 <div>
                   <div class="flex items-center gap-2">
@@ -158,7 +161,19 @@
 </template>
 
 <script setup lang="ts">
+import { reactive } from "vue";
 import { App } from "../global/typedefinition";
+import { APM_STORE_BASE_URL } from "../global/storeConfig";
+
+const iconErrors = reactive<Record<string, boolean>>({});
+
+const getIconUrl = (app: App) => {
+  if (app.icons && app.icons.startsWith("/")) return `file://${app.icons}`;
+  if (!app.category || app.category === "unknown") return "";
+  const arch = window.apm_store.arch || "amd64";
+  const finalArch = app.origin === "spark" ? `${arch}-store` : `${arch}-apm`;
+  return `${APM_STORE_BASE_URL}/${finalArch}/${app.category}/${app.pkgname}/icon.png`;
+};
 
 defineProps<{
   show: boolean;
